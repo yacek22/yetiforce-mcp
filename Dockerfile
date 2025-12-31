@@ -1,12 +1,23 @@
 FROM node:20-alpine
 
+# Utwórz katalog aplikacji
 WORKDIR /app
 
-COPY package.json ./
-RUN npm install
+# Skopiuj package.json i package-lock.json
+COPY package*.json ./
 
+# Zainstaluj zależności
+RUN npm ci --only=production
+
+# Skopiuj kod źródłowy
 COPY . .
 
-EXPOSE 3333
+# Expose port (dla HTTP API, jeśli będzie potrzebny)
+EXPOSE 3000
 
-CMD ["node", "index.js"]
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "console.log('OK')" || exit 1
+
+# Uruchom aplikację
+CMD ["node", "src/index.js"]
