@@ -249,6 +249,31 @@ async function executeCustomQuery(query) {
 const app = express();
 app.use(express.json());
 
+// Auth token
+const AUTH_TOKEN = process.env.API_TOKEN;
+
+app.use((req, res, next) => {
+  // health zostawiamy publiczny
+  if (req.path === '/health') {
+    return next();
+  }
+
+  const authHeader = req.headers['authorization'];
+
+  if (!authHeader) {
+    return res.status(401).json({ error: 'Missing Authorization header' });
+  }
+
+  const [type, token] = authHeader.split(' ');
+
+  if (type !== 'Bearer' || token !== AUTH_TOKEN) {
+    return res.status(403).json({ error: 'Invalid token' });
+  }
+
+  next();
+});
+
+
 // Strona główna
 app.get('/', (req, res) => {
   res.json({
