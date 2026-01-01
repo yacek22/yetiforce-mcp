@@ -1,5 +1,3 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 import express from 'express';
@@ -139,235 +137,92 @@ async function executeCustomQuery(query) {
   return rows;
 }
 
-// Jeśli HTTP_MODE jest włączony, uruchom Express API
-if (process.env.HTTP_MODE === 'true') {
-  const app = express();
-  app.use(express.json());
-  
-  // Health check endpoint
-  app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
-  });
-  
-  // Lista dostępnych narzędzi
-  app.get('/tools', (req, res) => {
-    res.json({
-      tools: [
-        {
-          name: 'get_contacts',
-          description: 'Pobiera listę kontaktów z YetiForce CRM',
-          parameters: ['limit', 'search']
-        },
-        {
-          name: 'get_accounts',
-          description: 'Pobiera listę kontrahentów',
-          parameters: ['limit', 'search']
-        },
-        {
-          name: 'get_opportunities',
-          description: 'Pobiera szanse sprzedaży',
-          parameters: ['limit', 'status']
-        },
-        {
-          name: 'execute_query',
-          description: 'Wykonaj niestandardowe zapytanie SQL (tylko SELECT)',
-          parameters: ['query']
-        }
-      ]
-    });
-  });
-  
-  // Endpoint dla kontaktów
-  app.get('/contacts', async (req, res) => {
-    try {
-      const results = await getContacts(req.query);
-      res.json({ success: true, data: results, count: results.length });
-    } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
-  
-  // Endpoint dla kontrahentów
-  app.get('/accounts', async (req, res) => {
-    try {
-      const results = await getAccounts(req.query);
-      res.json({ success: true, data: results, count: results.length });
-    } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
-  
-  // Endpoint dla szans sprzedaży
-  app.get('/opportunities', async (req, res) => {
-    try {
-      const results = await getOpportunities(req.query);
-      res.json({ success: true, data: results, count: results.length });
-    } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
-  
-  // Endpoint dla niestandardowych zapytań
-  app.post('/query', async (req, res) => {
-    try {
-      const { query } = req.body;
-      if (!query) {
-        return res.status(400).json({ success: false, error: 'Query is required' });
-      }
-      const results = await executeCustomQuery(query);
-      res.json({ success: true, data: results, count: results.length });
-    } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
-  
-  const PORT = process.env.MCP_PORT || 3000;
-  
-  testConnection().then(() => {
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`🚀 YetiForce MCP HTTP API działa na porcie ${PORT}`);
-      console.log(`📡 Health check: http://localhost:${PORT}/health`);
-    });
-  });
-  
-} else {
-  // Tryb MCP (STDIO) dla Claude Desktop
-  const server = new Server(
-    {
-      name: 'yetiforce-mcp',
-      version: '1.0.0',
-    },
-    {
-      capabilities: {
-        tools: {},
+// Express HTTP API
+const app = express();
+app.use(express.json());
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Lista dostępnych narzędzi
+app.get('/tools', (req, res) => {
+  res.json({
+    tools: [
+      {
+        name: 'get_contacts',
+        description: 'Pobiera listę kontaktów z YetiForce CRM',
+        parameters: ['limit', 'search']
       },
-    }
-  );
-
-  server.setRequestHandler('tools/list', async () => {
-    return {
-      tools: [
-        {
-          name: 'get_contacts',
-          description: 'Pobiera listę kontaktów z YetiForce CRM',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              limit: {
-                type: 'number',
-                description: 'Maksymalna liczba wyników (domyślnie 50)',
-                default: 50
-              },
-              search: {
-                type: 'string',
-                description: 'Wyszukaj po nazwisku, imieniu lub e-mailu'
-              }
-            }
-          }
-        },
-        {
-          name: 'get_accounts',
-          description: 'Pobiera listę kontrahentów (firm) z YetiForce',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              limit: {
-                type: 'number',
-                description: 'Maksymalna liczba wyników',
-                default: 50
-              },
-              search: {
-                type: 'string',
-                description: 'Wyszukaj po nazwie firmy'
-              }
-            }
-          }
-        },
-        {
-          name: 'get_opportunities',
-          description: 'Pobiera szanse sprzedaży z YetiForce',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              status: {
-                type: 'string',
-                description: 'Filtruj po statusie (np. "Prospecting", "Closed Won")'
-              },
-              limit: {
-                type: 'number',
-                default: 50
-              }
-            }
-          }
-        },
-        {
-          name: 'execute_custom_query',
-          description: 'Wykonaj niestandardowe zapytanie SQL (tylko SELECT)',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              query: {
-                type: 'string',
-                description: 'Zapytanie SQL (tylko SELECT)'
-              }
-            },
-            required: ['query']
-          }
-        }
-      ]
-    };
-  });
-
-  server.setRequestHandler('tools/call', async (request) => {
-    const { name, arguments: args } = request.params;
-
-    try {
-      let result;
-      
-      switch (name) {
-        case 'get_contacts':
-          result = await getContacts(args);
-          break;
-        case 'get_accounts':
-          result = await getAccounts(args);
-          break;
-        case 'get_opportunities':
-          result = await getOpportunities(args);
-          break;
-        case 'execute_custom_query':
-          result = await executeCustomQuery(args.query);
-          break;
-        default:
-          throw new Error(`Nieznane narzędzie: ${name}`);
+      {
+        name: 'get_accounts',
+        description: 'Pobiera listę kontrahentów',
+        parameters: ['limit', 'search']
+      },
+      {
+        name: 'get_opportunities',
+        description: 'Pobiera szanse sprzedaży',
+        parameters: ['limit', 'status']
+      },
+      {
+        name: 'execute_query',
+        description: 'Wykonaj niestandardowe zapytanie SQL (tylko SELECT)',
+        parameters: ['query']
       }
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(result, null, 2)
-          }
-        ]
-      };
-    } catch (error) {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Błąd: ${error.message}`
-          }
-        ],
-        isError: true
-      };
-    }
+    ]
   });
+});
 
-  async function main() {
-    await testConnection();
-    const transport = new StdioServerTransport();
-    await server.connect(transport);
-    console.error('✅ YetiForce MCP Server uruchomiony (STDIO mode)');
+// Endpoint dla kontaktów
+app.get('/contacts', async (req, res) => {
+  try {
+    const results = await getContacts(req.query);
+    res.json({ success: true, data: results, count: results.length });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
+});
 
-  main().catch(console.error);
-}
+// Endpoint dla kontrahentów
+app.get('/accounts', async (req, res) => {
+  try {
+    const results = await getAccounts(req.query);
+    res.json({ success: true, data: results, count: results.length });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Endpoint dla szans sprzedaży
+app.get('/opportunities', async (req, res) => {
+  try {
+    const results = await getOpportunities(req.query);
+    res.json({ success: true, data: results, count: results.length });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Endpoint dla niestandardowych zapytań
+app.post('/query', async (req, res) => {
+  try {
+    const { query } = req.body;
+    if (!query) {
+      return res.status(400).json({ success: false, error: 'Query is required' });
+    }
+    const results = await executeCustomQuery(query);
+    res.json({ success: true, data: results, count: results.length });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+const PORT = process.env.MCP_PORT || 3000;
+
+testConnection().then(() => {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 YetiForce MCP HTTP API działa na porcie ${PORT}`);
+    console.log(`📡 Health check: http://localhost:${PORT}/health`);
+  });
+});
