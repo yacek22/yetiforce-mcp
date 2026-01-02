@@ -19,7 +19,7 @@ const pool = mysql.createPool({
   keepAliveInitialDelay: 0
 });
 
-// Test połączenia z bazą
+// Test połączenia
 async function testConnection() {
   try {
     const connection = await pool.getConnection();
@@ -37,7 +37,7 @@ async function executeSelect(query, params = []) {
   return rows;
 }
 
-// Funkcje do modułów
+// Funkcja pobierania modułu z search i limit
 async function getModule(moduleName, args = {}) {
   const mod = schema.modules[moduleName];
   if (!mod) throw new Error(`Module ${moduleName} nie istnieje`);
@@ -47,10 +47,9 @@ async function getModule(moduleName, args = {}) {
   const params = [];
 
   if (args.search && mod.searchable_fields.length) {
-    query += ' AND (' + mod.searchable_fields.map(() => `${table}.?? LIKE ?`).join(' OR ') + ')';
-    mod.searchable_fields.forEach(field => {
-      params.push(field, `%${args.search}%`);
-    });
+    const conditions = mod.searchable_fields.map(field => `${table}.${field} LIKE ?`).join(' OR ');
+    query += ' AND (' + conditions + ')';
+    mod.searchable_fields.forEach(() => params.push(`%${args.search}%`));
   }
 
   if (args.limit) {
@@ -60,11 +59,11 @@ async function getModule(moduleName, args = {}) {
     query += ' ORDER BY e.modifiedtime DESC LIMIT 50';
   }
 
-  const rows = await pool.execute(query, params);
-  return rows[0];
+  const [rows] = await pool.execute(query, params);
+  return rows;
 }
 
-// Endpointy MCP
+// Express API
 const app = express();
 app.use(express.json());
 
@@ -88,15 +87,16 @@ app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().
 // Schema
 app.get('/schema', (req, res) => res.json({ success: true, schema }));
 
-// Relacje
+// Relacje rekordu
 app.get('/relations/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const rows = await executeSelect(`
-      SELECT crmid, relcrmid, module, relmodule
-      FROM vtiger_crmentityrel
-      WHERE crmid = ? OR relcrmid = ?
-    `, [id, id]);
+    const rows = await executeSelect(
+      `SELECT crmid, relcrmid, module, relmodule
+       FROM vtiger_crmentityrel
+       WHERE crmid = ? OR relcrmid = ?`,
+      [id, id]
+    );
     res.json({ success: true, data: rows });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -137,7 +137,7 @@ app.get('/search', async (req, res) => {
   }
 });
 
-// Niestandardowe zapytania SELECT
+// Niestandardowe SELECT
 app.post('/query', async (req, res) => {
   try {
     const { query } = req.body;
