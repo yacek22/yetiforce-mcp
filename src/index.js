@@ -138,7 +138,7 @@ async function getAccounts(args = {}) {
 
 async function getLeads(args = {}) {
   let query = `
-    SELECT l.leadid, l.lead_firstname, l.lead_lastname, l.email, l.company, l.leadstatus, e.createdtime, website, smownerid, lead_stage, lead_account, lead_contact, lead_campaign, lead_zainteresowanie, lead_note
+    SELECT l.leadid, l.lead_firstname, l.lead_lastname, l.email, l.company, l.leadstatus, e.createdtime, smownerid, lead_stage, lead_account, lead_contact, lead_campaign, lead_zainteresowanie, lead_note
     FROM vtiger_leaddetails l
     JOIN vtiger_crmentity e ON l.leadid = e.crmid
     WHERE e.deleted = 0
