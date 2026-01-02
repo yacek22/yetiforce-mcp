@@ -73,4 +73,64 @@ app.get('/relations/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const rows = await executeSelect(
-      `SELECT crmid,
+      `SELECT crmid, relcrmid, module, relmodule FROM vtiger_crmentityrel WHERE crmid = ? OR relcrmid = ?`,
+      [id, id]
+    );
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Endpointy modułów
+Object.keys(schema).forEach(mod => {
+  app.get(`/${mod.toLowerCase()}`, async (req, res) => {
+    try {
+      const data = await getModule(mod, req.query);
+      res.json({ success: true, data, count: data.length });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+});
+
+// Global search
+app.get('/search', async (req, res) => {
+  try {
+    const { query, limit = 20 } = req.query;
+    if (!query) return res.status(400).json({ success: false, error: 'Query is required' });
+
+    const results = [];
+    for (const mod of Object.keys(schema)) {
+      const rows = await getModule(mod, { search: query, limit });
+      rows.forEach(r => r.type = mod.toLowerCase());
+      results.push(...rows);
+    }
+
+    results.sort((a, b) => new Date(b.modifiedtime) - new Date(a.modifiedtime));
+    res.json({ success: true, query, data: results.slice(0, limit), count: results.length });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Niestandardowe SELECT
+app.post('/query', async (req, res) => {
+  try {
+    const { query } = req.body;
+    if (!query || !query.trim().toLowerCase().startsWith('select'))
+      return res.status(400).json({ success: false, error: 'Only SELECT queries are allowed' });
+    const rows = await executeSelect(query);
+    res.json({ success: true, data: rows, count: rows.length });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+const PORT = process.env.MCP_PORT || 3000;
+testConnection().then(() => {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 YetiForce MCP HTTP API działa na porcie ${PORT}`);
+    console.log(`📡 Health check: http://localhost:${PORT}/health`);
+  });
+});
