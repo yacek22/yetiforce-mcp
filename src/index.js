@@ -30,7 +30,7 @@ async function testConnection() {
   }
 }
 
-// --- FUNKCJE POMOCNICZE ---
+// --- FUNKCJE POMOCNICZE (Z OBSŁUGĄ DAT) ---
 
 async function getContacts(args = {}) {
   let query = `
@@ -71,6 +71,16 @@ async function getContacts(args = {}) {
     params.push(`%${args.search}%`, `%${args.search}%`, `%${args.search}%`, `%${args.search}%`, `%${args.search}%`);
   }
   
+  // Filtrowanie po dacie utworzenia
+  if (args.date_from) {
+    query += ` AND e.createdtime >= ?`;
+    params.push(args.date_from + ' 00:00:00');
+  }
+  if (args.date_to) {
+    query += ` AND e.createdtime <= ?`;
+    params.push(args.date_to + ' 23:59:59');
+  }
+
   if (args.status) {
     query += ` AND c.contactstatus = ?`;
     params.push(args.status);
@@ -81,8 +91,8 @@ async function getContacts(args = {}) {
     params.push(args.account);
   }
   
-  query += ` ORDER BY e.modifiedtime DESC LIMIT ?`;
-  params.push(parseInt(args.limit) || 50);
+  query += ` ORDER BY e.createdtime DESC LIMIT ?`;
+  params.push(parseInt(args.limit) || 100);
   
   const [rows] = await pool.execute(query, params);
   return rows;
@@ -124,6 +134,16 @@ async function getAccounts(args = {}) {
     query += ` AND (a.accountname LIKE ? OR a.account_short_name LIKE ? OR a.email1 LIKE ? OR a.vat_id LIKE ?)`;
     params.push(`%${args.search}%`, `%${args.search}%`, `%${args.search}%`, `%${args.search}%`);
   }
+
+  // Filtrowanie po dacie utworzenia
+  if (args.date_from) {
+    query += ` AND e.createdtime >= ?`;
+    params.push(args.date_from + ' 00:00:00');
+  }
+  if (args.date_to) {
+    query += ` AND e.createdtime <= ?`;
+    params.push(args.date_to + ' 23:59:59');
+  }
   
   if (args.status) {
     query += ` AND a.accounts_status = ?`;
@@ -135,8 +155,8 @@ async function getAccounts(args = {}) {
     params.push(args.type);
   }
   
-  query += ` ORDER BY e.modifiedtime DESC LIMIT ?`;
-  params.push(parseInt(args.limit) || 50);
+  query += ` ORDER BY e.createdtime DESC LIMIT ?`;
+  params.push(parseInt(args.limit) || 100);
   
   const [rows] = await pool.execute(query, params);
   return rows;
@@ -185,6 +205,16 @@ async function getLeads(args = {}) {
     query += ` AND (l.lead_firstname LIKE ? OR l.lead_lastname LIKE ? OR l.email LIKE ? OR l.company LIKE ? OR a.accountname LIKE ?)`;
     params.push(`%${args.search}%`, `%${args.search}%`, `%${args.search}%`, `%${args.search}%`, `%${args.search}%`);
   }
+
+  // Filtrowanie po dacie utworzenia (KLUCZOWE dla analityki)
+  if (args.date_from) {
+    query += ` AND e.createdtime >= ?`;
+    params.push(args.date_from + ' 00:00:00');
+  }
+  if (args.date_to) {
+    query += ` AND e.createdtime <= ?`;
+    params.push(args.date_to + ' 23:59:59');
+  }
   
   if (args.status) {
     query += ` AND l.leadstatus = ?`;
@@ -201,14 +231,14 @@ async function getLeads(args = {}) {
     params.push(args.converted === 'true' || args.converted === true ? 1 : 0);
   }
   
-  query += ` ORDER BY e.modifiedtime DESC LIMIT ?`;
-  params.push(parseInt(args.limit) || 50);
+  query += ` ORDER BY e.createdtime DESC LIMIT ?`;
+  params.push(parseInt(args.limit) || 100);
   
   const [rows] = await pool.execute(query, params);
   return rows;
 }
 
-// --- POPRAWIONA FUNKCJA SZANS SPRZEDAŻY ---
+// --- POPRAWIONA FUNKCJA SZANS SPRZEDAŻY (z DATAMI) ---
 async function getOpportunities(args = {}) {
   // Używamy tabeli u_yf_ssalesprocesses zgodnie z Yetiforce schema
   let query = `
@@ -239,27 +269,37 @@ async function getOpportunities(args = {}) {
     query += ` AND (p.subject LIKE ? OR a.accountname LIKE ? OR p.ssalesprocesses_no LIKE ?)`;
     params.push(`%${args.search}%`, `%${args.search}%`, `%${args.search}%`);
   }
+
+  // Filtrowanie po dacie utworzenia
+  if (args.date_from) {
+    query += ` AND e.createdtime >= ?`;
+    params.push(args.date_from + ' 00:00:00');
+  }
+  if (args.date_to) {
+    query += ` AND e.createdtime <= ?`;
+    params.push(args.date_to + ' 23:59:59');
+  }
   
-  // Mapowanie starego parametru status na nową kolumnę
+  // Status
   if (args.status) {
     query += ` AND p.ssalesprocesses_status = ?`;
     params.push(args.status);
   }
   
-  // Mapowanie starego amount na estimated
+  // Kwota
   if (args.min_amount) {
     query += ` AND p.estimated >= ?`;
     params.push(parseFloat(args.min_amount));
   }
 
-  // Obsługa relacji z firmą
+  // Firma
   if (args.opportunity_company) {
     query += ` AND p.opportunity_company = ?`;
     params.push(args.opportunity_company);
   }
   
-  query += ` ORDER BY e.modifiedtime DESC LIMIT ?`;
-  params.push(parseInt(args.limit) || 50);
+  query += ` ORDER BY e.createdtime DESC LIMIT ?`;
+  params.push(parseInt(args.limit) || 100);
   
   const [rows] = await pool.execute(query, params);
   return rows;
@@ -282,23 +322,17 @@ app.use(express.json());
 const AUTH_TOKEN = process.env.API_TOKEN;
 
 app.use((req, res, next) => {
-  // health zostawiamy publiczny
   if (req.path === '/health') {
     return next();
   }
-
   const authHeader = req.headers['authorization'];
-
   if (!authHeader) {
     return res.status(401).json({ error: 'Missing Authorization header' });
   }
-
   const [type, token] = authHeader.split(' ');
-
   if (type !== 'Bearer' || token !== AUTH_TOKEN) {
     return res.status(403).json({ error: 'Invalid token' });
   }
-
   next();
 });
 
@@ -306,19 +340,19 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
   res.json({
     name: 'YetiForce MCP API',
-    version: '1.0.1 (Fixed Tables)',
+    version: '1.0.2 (Fixed Tables & Dates)',
     endpoints: {
       health: '/health',
       tools: '/tools',
       search: '/search?query=Bondecki',
       contacts: '/contacts?limit=10&search=Jan',
       accounts: '/accounts?limit=10&search=Firma',
-      leads: '/leads?limit=10&stage=SQL',
+      leads: '/leads?limit=10&stage=SQL&date_from=2025-01-01',
       opportunities: '/opportunities?limit=10&status=Prospecting',
-      ssalesprocesses: '/ssalesprocesses (Alias dla opportunities)',
+      ssalesprocesses: '/ssalesprocesses',
       customQuery: 'POST /query with body: {"query": "SELECT ..."}'
     },
-    authentication: 'Bearer token required (except /health)',
+    authentication: 'Bearer token required',
     documentation: 'https://github.com/yacek22/yetiforce-mcp'
   });
 });
@@ -328,7 +362,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Lista dostępnych narzędzi
+// Lista dostępnych narzędzi (Zaktualizowana o daty)
 app.get('/tools', (req, res) => {
   res.json({
     tools: [
@@ -339,23 +373,23 @@ app.get('/tools', (req, res) => {
       },
       {
         name: 'get_contacts',
-        description: 'Pobiera listę kontaktów z YetiForce CRM (z nazwami firm)',
-        parameters: ['limit', 'search', 'status', 'account']
+        description: 'Pobiera listę kontaktów (Osoby)',
+        parameters: ['limit', 'search', 'status', 'account', 'date_from', 'date_to']
       },
       {
         name: 'get_accounts',
-        description: 'Pobiera listę kontrahentów',
-        parameters: ['limit', 'search', 'status', 'type']
+        description: 'Pobiera listę kontrahentów (Firmy)',
+        parameters: ['limit', 'search', 'status', 'type', 'date_from', 'date_to']
       },
       {
         name: 'get_leads',
-        description: 'Pobiera listę leadów (z nazwami firm i kontaktów)',
-        parameters: ['limit', 'search', 'status', 'stage', 'converted']
+        description: 'Pobiera listę leadów (Potencjalni Klienci)',
+        parameters: ['limit', 'search', 'status', 'stage', 'converted', 'date_from', 'date_to']
       },
       {
         name: 'get_opportunities',
-        description: 'Pobiera szanse sprzedaży (z nazwami firm) - Tabela SSalesProcesses',
-        parameters: ['limit', 'search', 'status', 'min_amount', 'opportunity_company']
+        description: 'Pobiera szanse sprzedaży (Szanse/Okazje)',
+        parameters: ['limit', 'search', 'status', 'min_amount', 'opportunity_company', 'date_from', 'date_to']
       },
       {
         name: 'execute_query',
@@ -366,15 +400,11 @@ app.get('/tools', (req, res) => {
   });
 });
 
-// Globalny endpoint wyszukiwania
+// Globalny endpoint wyszukiwania (Aktualizacja SQL szans)
 app.get('/search', async (req, res) => {
   try {
     const { query, limit = 20 } = req.query;
-    
-    // Jeśli query jest puste, obsługujemy to jako "pobierz wszystko" (z limitem)
-    // lub zwracamy błąd jeśli wolisz restrykcję
     const searchQuery = query || '';
-    
     const searchLimit = parseInt(limit);
     
     const [contacts] = await pool.execute(`
@@ -442,7 +472,7 @@ app.get('/search', async (req, res) => {
       LIMIT ?
     `, [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`, searchLimit]);
     
-    // POPRAWIONE ZAPYTANIE DLA SZANS (SSalesProcesses)
+    // POPRAWIONE ZAPYTANIE SEARCH DLA SZANS
     const [opportunities] = await pool.execute(`
       SELECT 
         'opportunity' as type,
@@ -466,8 +496,6 @@ app.get('/search', async (req, res) => {
     `, [`%${searchQuery}%`, `%${searchQuery}%`, searchLimit]);
     
     const results = [...contacts, ...accounts, ...leads, ...opportunities];
-    
-    // Sortuj po dacie modyfikacji
     results.sort((a, b) => new Date(b.modifiedtime) - new Date(a.modifiedtime));
     
     res.json({ 
@@ -487,7 +515,7 @@ app.get('/search', async (req, res) => {
   }
 });
 
-// Endpoint dla kontaktów
+// Endpointy modułowe
 app.get('/contacts', async (req, res) => {
   try {
     const results = await getContacts(req.query);
@@ -497,7 +525,6 @@ app.get('/contacts', async (req, res) => {
   }
 });
 
-// Endpoint dla kontrahentów
 app.get('/accounts', async (req, res) => {
   try {
     const results = await getAccounts(req.query);
@@ -507,7 +534,6 @@ app.get('/accounts', async (req, res) => {
   }
 });
 
-// Endpoint dla leadów
 app.get('/leads', async (req, res) => {
   try {
     const results = await getLeads(req.query);
@@ -517,7 +543,6 @@ app.get('/leads', async (req, res) => {
   }
 });
 
-// Endpoint dla szans sprzedaży (główny)
 app.get('/opportunities', async (req, res) => {
   try {
     const results = await getOpportunities(req.query);
@@ -527,7 +552,7 @@ app.get('/opportunities', async (req, res) => {
   }
 });
 
-// ALIAS: Endpoint dla /ssalesprocesses (dla agentów używających nazw tabel)
+// Aliasy dla szans (case-insensitive handling)
 app.get('/ssalesprocesses', async (req, res) => {
   try {
     const results = await getOpportunities(req.query);
@@ -537,7 +562,6 @@ app.get('/ssalesprocesses', async (req, res) => {
   }
 });
 
-// ALIAS: Endpoint dla /SSalesProcesses (dla agentów PascalCase)
 app.get('/SSalesProcesses', async (req, res) => {
   try {
     const results = await getOpportunities(req.query);
@@ -547,7 +571,6 @@ app.get('/SSalesProcesses', async (req, res) => {
   }
 });
 
-// Endpoint dla niestandardowych zapytań
 app.post('/query', async (req, res) => {
   try {
     const { query } = req.body;
