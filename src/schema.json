@@ -1,0 +1,119 @@
+{
+  "modules": {
+    "Leads": {
+      "table": "vtiger_leaddetails",
+      "pk": "leadid",
+      "crmentity": true,
+      "description": "Potencjalni klienci przed konwersją",
+      "relations": {
+        "Accounts": "lead_account",
+        "Contacts": "lead_contact"
+      },
+      "fields": [
+        "lead_firstname",
+        "lead_lastname",
+        "email",
+        "company",
+        "leadstatus",
+        "lead_stage",
+        "converted",
+        "leadsource",
+        "industry",
+        "annualrevenue",
+        "vat_id",
+        "lead_position",
+        "lead_decisionmaker",
+        "lead_linkedin",
+        "lead_zainteresowanie"
+      ],
+      "searchable_fields": [
+        "lead_firstname",
+        "lead_lastname",
+        "email",
+        "company"
+      ]
+    },
+    "Accounts": {
+      "table": "vtiger_account",
+      "pk": "accountid",
+      "description": "Firmy / kontrahenci",
+      "relations": {
+        "Contacts": "accountid",
+        "Leads": "accountid",
+        "Opportunities": "related_to"
+      },
+      "fields": [
+        "accountname",
+        "account_short_name",
+        "account_type",
+        "industry",
+        "phone",
+        "email1",
+        "email2",
+        "website",
+        "employees",
+        "annualrevenue",
+        "vat_id",
+        "accounts_status",
+        "legal_form",
+        "balance",
+        "payment_balance",
+        "creditlimit",
+        "account_linkedin"
+      ],
+      "searchable_fields": [
+        "accountname",
+        "account_short_name",
+        "email1",
+        "vat_id"
+      ]
+    },
+    "Contacts": {
+      "table": "vtiger_contactdetails",
+      "pk": "contactid",
+      "description": "Osoby powiązane z firmami",
+      "relations": {
+        "Accounts": "contact_account",
+        "Leads": "lead_contact"
+      },
+      "fields": [
+        "firstname",
+        "lastname",
+        "email",
+        "phone",
+        "mobile",
+        "jobtitle",
+        "contactstatus",
+        "decision_maker",
+        "secondary_email",
+        "contact_linkedin",
+        "gender"
+      ],
+      "searchable_fields": [
+        "firstname",
+        "lastname",
+        "email",
+        "phone"
+      ]
+    },
+    "Opportunities": {
+      "table": "vtiger_potential",
+      "pk": "potentialid",
+      "description": "Szanse sprzedaży",
+      "relations": {
+        "Accounts": "related_to"
+      },
+      "fields": [
+        "potentialname",
+        "amount",
+        "sales_stage",
+        "closingdate",
+        "probability",
+        "related_to"
+      ],
+      "searchable_fields": [
+        "potentialname"
+      ]
+    }
+  }
+}
