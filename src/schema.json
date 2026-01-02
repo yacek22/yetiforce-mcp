@@ -1,432 +1,5476 @@
 {
-  "Contacts": {
-    "table": "vtiger_contactdetails",
-    "pk": "contactid",
-    "fields": [
-      "contactid",
-      "contact_no",
-      "parentid",
-      "salutation",
-      "firstname",
-      "lastname",
-      "email",
-      "phone",
-      "mobile",
-      "reportsto",
-      "training",
-      "usertype",
-      "contacttype",
-      "otheremail",
-      "donotcall",
-      "emailoptout",
-      "imagename",
-      "isconvertedfromlead",
-      "verification",
-      "secondary_email",
-      "notifilanguage",
-      "contactstatus",
-      "dav_status",
-      "jobtitle",
-      "decision_maker",
-      "sum_time",
-      "phone_extra",
-      "mobile_extra",
-      "approvals",
-      "gender",
-      "api_contacts",
-      "lead_rodo_1",
-      "lead_rodo_2",
-      "lead_rodo_4",
-      "contacts_campaign",
-      "contact_linkedin",
-      "contact_account",
-      "photo_contact"
-    ],
-    "relations": {
-      "contactid": {
-        "module": "vtiger_crmentity",
-        "table": "vtiger_crmentity",
-        "pk": "crmid"
+  "version": 1,
+  "generatedAt": "2026-01-02T17:42:42.659Z",
+  "modules": {
+    "Dashboard": {
+      "table": "dashboard",
+      "fields": {}
+    },
+    "Home": {
+      "table": "home",
+      "fields": {}
+    },
+    "Contacts": {
+      "table": "contacts",
+      "fields": {
+        "firstname": {
+          "column": "firstname",
+          "label": "First Name",
+          "uitype": 1,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "contact_no": {
+          "column": "contact_no",
+          "label": "Contact Id",
+          "uitype": 4,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "phone": {
+          "column": "phone",
+          "label": "Office Phone",
+          "uitype": 11,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lastname": {
+          "column": "lastname",
+          "label": "Last Name",
+          "uitype": 255,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "mobile": {
+          "column": "mobile",
+          "label": "Mobile",
+          "uitype": 11,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "email": {
+          "column": "email",
+          "label": "Email",
+          "uitype": 13,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "contact_id": {
+          "column": "reportsto",
+          "label": "Reports To",
+          "uitype": 57,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "donotcall": {
+          "column": "donotcall",
+          "label": "Approval for phone calls",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "emailoptout": {
+          "column": "emailoptout",
+          "label": "Zgoda na profilowanie",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedby": {
+          "column": "modifiedby",
+          "label": "Last Modified By",
+          "uitype": 52,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "imagename": {
+          "column": "imagename",
+          "label": "Contact Image",
+          "uitype": 69,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "created_user_id": {
+          "column": "smcreatorid",
+          "label": "Created By",
+          "uitype": 52,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel1a": {
+          "column": "addresslevel1a",
+          "label": "AddressLevel1",
+          "uitype": 35,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel2a": {
+          "column": "addresslevel2a",
+          "label": "AddressLevel2",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel5a": {
+          "column": "addresslevel5a",
+          "label": "AddressLevel5",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel7a": {
+          "column": "addresslevel7a",
+          "label": "AddressLevel7",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel8a": {
+          "column": "addresslevel8a",
+          "label": "AddressLevel8",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "buildingnumbera": {
+          "column": "buildingnumbera",
+          "label": "Building number",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "localnumbera": {
+          "column": "localnumbera",
+          "label": "Local number",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "secondary_email": {
+          "column": "secondary_email",
+          "label": "Secondary Email",
+          "uitype": 13,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "shownerid": {
+          "column": "shownerid",
+          "label": "Share with users",
+          "uitype": 120,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "contactstatus": {
+          "column": "contactstatus",
+          "label": "Status",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "was_read": {
+          "column": "was_read",
+          "label": "Was read",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "jobtitle": {
+          "column": "jobtitle",
+          "label": "Job title",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "decision_maker": {
+          "column": "decision_maker",
+          "label": "Decision maker",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "phone_extra": {
+          "column": "phone_extra",
+          "label": "FL_PHONE_CUSTOM_INFORMATION",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "mobile_extra": {
+          "column": "mobile_extra",
+          "label": "FL_PHONE_CUSTOM_INFORMATION",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "api_contacts": {
+          "column": "api_contacts",
+          "label": "API  kontakt",
+          "uitype": 318,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lead_rodo_1": {
+          "column": "lead_rodo_1",
+          "label": "Zgoda na przetwarzanie danych osobowych",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "lead_rodo_2": {
+          "column": "lead_rodo_2",
+          "label": "Zgoda na marketing bezpośredni",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "lead_rodo_4": {
+          "column": "lead_rodo_4",
+          "label": "Zgoda na przekazywanie danych podmiotom trzecim",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "contacts_campaign": {
+          "column": "contacts_campaign",
+          "label": "Źródło pochodzenia",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "contact_linkedin": {
+          "column": "contact_linkedin",
+          "label": "LinkedIn",
+          "uitype": 17,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "contact_account": {
+          "column": "contact_account",
+          "label": "Kontrahent",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "photo_contact": {
+          "column": "photo_contact",
+          "label": "Zdjęcie",
+          "uitype": 69,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        }
       }
     },
-    "searchFields": [
-      "firstname",
-      "lastname",
-      "email",
-      "phone",
-      "mobile"
-    ]
-  },
-  "Opportunities": {
-    "table": "u_yf_ssalesprocesses",
-    "pk": "ssalesprocessesid",
-    "fields": [
-      "ssalesprocessesid",
-      "ssalesprocesses_no",
-      "subject",
-      "category",
-      "related_to",
-      "sum_time",
-      "estimated",
-      "actual_sale",
-      "estimated_date",
-      "actual_date",
-      "probability",
-      "ssalesprocesses_source",
-      "ssalesprocesses_type",
-      "ssalesprocesses_status",
-      "campaignid",
-      "parentid",
-      "startdate",
-      "estimated_margin",
-      "expected_margin",
-      "expected_sale",
-      "opportunity_company",
-      "opportunity_contact",
-      "lead_zainteresowanie",
-      "oportunity_other_contact",
-      "lead_reason_reject",
-      "opportunity_lead",
-      "opportunity_date",
-      "opportunity_days_count",
-      "opportunity_failure_note",
-      "opportunity_lead_date",
-      "opportunity_qty",
-      "opportunity_offer_done",
-      "opportunity_meeting_done",
-      "opportunity_needs_done",
-      "ssalesprocessesid"
-    ],
-    "relations": {
-      "ssalesprocessesid": {
-        "module": "vtiger_crmentity",
-        "table": "vtiger_crmentity",
-        "pk": "crmid"
+    "Accounts": {
+      "table": "accounts",
+      "fields": {
+        "accountname": {
+          "column": "accountname",
+          "label": "Account Name",
+          "uitype": 12,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "account_no": {
+          "column": "account_no",
+          "label": "Account No",
+          "uitype": 4,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "phone": {
+          "column": "phone",
+          "label": "Phone",
+          "uitype": 11,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "website": {
+          "column": "website",
+          "label": "Website",
+          "uitype": 17,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "otherphone": {
+          "column": "otherphone",
+          "label": "Other Phone",
+          "uitype": 11,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "account_id": {
+          "column": "parentid",
+          "label": "Member Of",
+          "uitype": 51,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "email1": {
+          "column": "email1",
+          "label": "Email",
+          "uitype": 13,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "employees": {
+          "column": "employees",
+          "label": "Employees",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "email2": {
+          "column": "email2",
+          "label": "Other Email",
+          "uitype": 13,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "industry": {
+          "column": "industry",
+          "label": "industry",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "siccode": {
+          "column": "siccode",
+          "label": "SIC Code",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "accounttype": {
+          "column": "account_type",
+          "label": "Type",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "annual_revenue": {
+          "column": "annualrevenue",
+          "label": "Annual Revenue",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedby": {
+          "column": "modifiedby",
+          "label": "Last Modified By",
+          "uitype": 52,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "description": {
+          "column": "description",
+          "label": "Description",
+          "uitype": 300,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "created_user_id": {
+          "column": "smcreatorid",
+          "label": "Created By",
+          "uitype": 52,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "vat_id": {
+          "column": "vat_id",
+          "label": "Vat ID",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "registration_number_1": {
+          "column": "registration_number_1",
+          "label": "Registration number 1",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "registration_number_2": {
+          "column": "registration_number_2",
+          "label": "Registration number 2",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel1a": {
+          "column": "addresslevel1a",
+          "label": "AddressLevel1",
+          "uitype": 35,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel2a": {
+          "column": "addresslevel2a",
+          "label": "AddressLevel2",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel5a": {
+          "column": "addresslevel5a",
+          "label": "AddressLevel5",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel7a": {
+          "column": "addresslevel7a",
+          "label": "AddressLevel7",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel8a": {
+          "column": "addresslevel8a",
+          "label": "AddressLevel8",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel1c": {
+          "column": "addresslevel1c",
+          "label": "AddressLevel1",
+          "uitype": 35,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel2c": {
+          "column": "addresslevel2c",
+          "label": "AddressLevel2",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel5c": {
+          "column": "addresslevel5c",
+          "label": "AddressLevel5",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel7c": {
+          "column": "addresslevel7c",
+          "label": "AddressLevel7",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel8c": {
+          "column": "addresslevel8c",
+          "label": "AddressLevel8",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "buildingnumbera": {
+          "column": "buildingnumbera",
+          "label": "Building number",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "localnumbera": {
+          "column": "localnumbera",
+          "label": "Local number",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "buildingnumberc": {
+          "column": "buildingnumberc",
+          "label": "Building number",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "localnumberc": {
+          "column": "localnumberc",
+          "label": "Local number",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "balance": {
+          "column": "balance",
+          "label": "Balance",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "shownerid": {
+          "column": "shownerid",
+          "label": "Share with users",
+          "uitype": 120,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "was_read": {
+          "column": "was_read",
+          "label": "Was read",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "payment_balance": {
+          "column": "payment_balance",
+          "label": "Payment balance",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "legal_form": {
+          "column": "legal_form",
+          "label": "LBL_LEGAL_FORM",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "sum_time": {
+          "column": "sum_time",
+          "label": "FL_TOTAL_TIME_H",
+          "uitype": 8,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "inventorybalance": {
+          "column": "inventorybalance",
+          "label": "LBL_INVENTORY_BALANCE",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "discount": {
+          "column": "discount",
+          "label": "LBL_DISCOUNT",
+          "uitype": 9,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "creditlimit": {
+          "column": "creditlimit",
+          "label": "LBL_CREDIT_LIMIT",
+          "uitype": 304,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "products": {
+          "column": "products",
+          "label": "Products",
+          "uitype": 305,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "services": {
+          "column": "services",
+          "label": "Services",
+          "uitype": 305,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "last_invoice_date": {
+          "column": "last_invoice_date",
+          "label": "FL_LAST_INVOICE_DATE",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "accounts_status": {
+          "column": "accounts_status",
+          "label": "FL_STATUS",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "phone_extra": {
+          "column": "phone_extra",
+          "label": "FL_PHONE_CUSTOM_INFORMATION",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "fax_extra": {
+          "column": "fax_extra",
+          "label": "FL_PHONE_CUSTOM_INFORMATION",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "otherphone_extra": {
+          "column": "otherphone_extra",
+          "label": "FL_PHONE_CUSTOM_INFORMATION",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "taxes": {
+          "column": "taxes",
+          "label": "FL_TAXES",
+          "uitype": 303,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "account_short_name": {
+          "column": "account_short_name",
+          "label": "FL_ACCOUNT_SHORT_NAME",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "account_linkedin": {
+          "column": "account_linkedin",
+          "label": "Linkedin firmowy",
+          "uitype": 17,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "logo_account": {
+          "column": "logo_account",
+          "label": "Logo",
+          "uitype": 69,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        }
       }
     },
-    "searchFields": [
-      "subject",
-      "category"
-    ]
-  },
-  "Campaigns": {
-    "table": "vtiger_campaign",
-    "pk": "campaignid",
-    "fields": [
-      "campaignid",
-      "campaign_no",
-      "campaignname",
-      "campaigntype",
-      "campaignstatus",
-      "expectedrevenue",
-      "budgetcost",
-      "actualcost",
-      "expectedresponse",
-      "numsent",
-      "product_id",
-      "sponsor",
-      "targetaudience",
-      "targetsize",
-      "expectedresponsecount",
-      "expectedsalescount",
-      "expectedroi",
-      "actualresponsecount",
-      "actualsalescount",
-      "actualroi",
-      "closingdate",
-      "sum_time",
-      "campaign_start",
-      "capaign_cpl",
-      "capaign_costs",
-      "campaign_costs_ads",
-      "campaign_cost_imprint",
-      "campaign_costs_content",
-      "campaign_costs_influencers",
-      "campaign_costs_event",
-      "campaign_costs_mkt_team",
-      "campaign_costs_tools",
-      "campaign_costs_seosem",
-      "campaign_costs_research",
-      "campaign_costs_partnerships",
-      "campaign_costs_travel",
-      "campaign_costs_btl",
-      "campaign_costs_pr",
-      "campaign_costs_bonus",
-      "campaign_costs_other",
-      "campaign_costs_lawyer",
-      "campaign_costs_outsourcing",
-      "campaign_cpl_sql",
-      "campaign_cpl_opp",
-      "campaign_conv_opportunity",
-      "campaign_sql_count",
-      "campaign_reject_count"
-    ],
-    "relations": {
-      "campaignid": {
-        "module": "vtiger_crmentity",
-        "table": "vtiger_crmentity",
-        "pk": "crmid"
+    "Leads": {
+      "table": "leads",
+      "fields": {
+        "lead_no": {
+          "column": "lead_no",
+          "label": "Lead No",
+          "uitype": 4,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "phone": {
+          "column": "phone",
+          "label": "Phone",
+          "uitype": 11,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "mobile": {
+          "column": "mobile",
+          "label": "Mobile",
+          "uitype": 11,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "company": {
+          "column": "company",
+          "label": "Nazwa leada",
+          "uitype": 2,
+          "required": false,
+          "readonly": false,
+          "type": "text"
+        },
+        "email": {
+          "column": "email",
+          "label": "Email",
+          "uitype": 13,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "website": {
+          "column": "website",
+          "label": "Website",
+          "uitype": 17,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "leadstatus": {
+          "column": "leadstatus",
+          "label": "Status leada",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "annualrevenue": {
+          "column": "annualrevenue",
+          "label": "Annual Revenue",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "secondaryemail": {
+          "column": "secondaryemail",
+          "label": "Secondary Email",
+          "uitype": 13,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedby": {
+          "column": "modifiedby",
+          "label": "Last Modified By",
+          "uitype": 52,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "created_user_id": {
+          "column": "smcreatorid",
+          "label": "Created By",
+          "uitype": 52,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "noapprovalcalls": {
+          "column": "noapprovalcalls",
+          "label": "Approval for phone calls",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "noapprovalemails": {
+          "column": "noapprovalemails",
+          "label": "Zgoda na marketing bezpośredni",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "vat_id": {
+          "column": "vat_id",
+          "label": "Vat ID",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "registration_number_1": {
+          "column": "registration_number_1",
+          "label": "Registration number 1",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "registration_number_2": {
+          "column": "registration_number_2",
+          "label": "Registration number 2",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel1a": {
+          "column": "addresslevel1a",
+          "label": "AddressLevel1",
+          "uitype": 35,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel2a": {
+          "column": "addresslevel2a",
+          "label": "AddressLevel2",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel5a": {
+          "column": "addresslevel5a",
+          "label": "AddressLevel5",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel7a": {
+          "column": "addresslevel7a",
+          "label": "AddressLevel7",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel8a": {
+          "column": "addresslevel8a",
+          "label": "AddressLevel8",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "buildingnumbera": {
+          "column": "buildingnumbera",
+          "label": "Building number",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "localnumbera": {
+          "column": "localnumbera",
+          "label": "Local number",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "shownerid": {
+          "column": "shownerid",
+          "label": "Share with users",
+          "uitype": 120,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "was_read": {
+          "column": "was_read",
+          "label": "Was read",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "legal_form": {
+          "column": "legal_form",
+          "label": "LBL_LEGAL_FORM",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "phone_extra": {
+          "column": "phone_extra",
+          "label": "FL_PHONE_CUSTOM_INFORMATION",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "mobile_extra": {
+          "column": "mobile_extra",
+          "label": "FL_PHONE_CUSTOM_INFORMATION",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "fax_extra": {
+          "column": "fax_extra",
+          "label": "FL_PHONE_CUSTOM_INFORMATION",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lead_stage": {
+          "column": "lead_stage",
+          "label": "Etap leada",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "lead_firstname": {
+          "column": "lead_firstname",
+          "label": "Imię",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lead_lastname": {
+          "column": "lead_lastname",
+          "label": "Nazwisko",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lead_account": {
+          "column": "lead_account",
+          "label": "Kontrahent powiązany",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "lead_contact": {
+          "column": "lead_contact",
+          "label": "Kontakt powiązany",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "lead_campaign": {
+          "column": "lead_campaign",
+          "label": "Żródło pochodzenia leada",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "lead_reason_reject": {
+          "column": "lead_reason_reject",
+          "label": "Powody odrzucenia",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "lead_linkedin": {
+          "column": "lead_linkedin",
+          "label": "LinkedIn",
+          "uitype": 17,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "contact_rodo_1": {
+          "column": "contact_rodo_1",
+          "label": "Zgoda na przetwarzanie danych osobowych",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "contact_rodo2": {
+          "column": "contact_rodo2",
+          "label": "Zgoda na przekazywanie danych podmiotom trzecim",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "lead_profilowanie": {
+          "column": "lead_profilowanie",
+          "label": "Zgoda na profilowanie",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "lead_zainteresowanie": {
+          "column": "lead_zainteresowanie",
+          "label": "Zainteresowanie",
+          "uitype": 33,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lead_note": {
+          "column": "lead_note",
+          "label": "Notatka",
+          "uitype": 21,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lead_date_creation": {
+          "column": "lead_date_creation",
+          "label": "Data powstania leada",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lead_days_count": {
+          "column": "lead_days_count",
+          "label": "Ilość dni od powstania leada",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "lead_position": {
+          "column": "lead_position",
+          "label": "Stanowisko",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lead_decisionmaker": {
+          "column": "lead_decisionmaker",
+          "label": "Osoba decyzyjna",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "lead_nr": {
+          "column": "lead_nr",
+          "label": "Ilość leadów",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "lead_iql_date": {
+          "column": "lead_iql_date",
+          "label": "Data utworzenia IQL",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lead_mql_date": {
+          "column": "lead_mql_date",
+          "label": "Data utworzenia MQL",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lead_sql_date": {
+          "column": "lead_sql_date",
+          "label": "Data utworzenia SQL",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lead_opp_date": {
+          "column": "lead_opp_date",
+          "label": "Data konwersji na szansę sprzedaży",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lead_inquire_date": {
+          "column": "lead_inquire_date",
+          "label": "Data wystawienia zamówienia",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lead_offer_date": {
+          "column": "lead_offer_date",
+          "label": "Data przygotowania oferty",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lead_invoice_date": {
+          "column": "lead_invoice_date",
+          "label": "Data wystawienia faktury",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lead_iql_count": {
+          "column": "lead_iql_count",
+          "label": "Ilość IQL",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "lead_mql_count": {
+          "column": "lead_mql_count",
+          "label": "Ilość MQL",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "lead_sql_count": {
+          "column": "lead_sql_count",
+          "label": "Ilość SQL",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        }
       }
     },
-    "searchFields": [
-      "campaignname",
-      "campaigntype",
-      "campaignstatus",
-      "expectedrevenue",
-      "budgetcost",
-      "actualcost"
-    ]
-  },
-  "Leads": {
-    "table": "vtiger_leaddetails",
-    "pk": "leadid",
-    "fields": [
-      "leadid",
-      "lead_no",
-      "email",
-      "interest",
-      "firstname",
-      "salutation",
-      "lastname",
-      "company",
-      "annualrevenue",
-      "industry",
-      "campaign",
-      "leadstatus",
-      "leadsource",
-      "converted",
-      "licencekeystatus",
-      "space",
-      "comments",
-      "priority",
-      "demorequest",
-      "partnercontact",
-      "productversion",
-      "product",
-      "maildate",
-      "nextstepdate",
-      "fundingsituation",
-      "purpose",
-      "evaluationstatus",
-      "transferdate",
-      "revenuetype",
-      "noofemployees",
-      "secondaryemail",
-      "noapprovalcalls",
-      "noapprovalemails",
-      "vat_id",
-      "registration_number_1",
-      "registration_number_2",
-      "verification",
-      "subindustry",
-      "atenttion",
-      "leads_relation",
-      "legal_form",
-      "sum_time",
-      "active",
-      "lead_stage",
-      "lead_firstname",
-      "lead_lastname",
-      "lead_account",
-      "lead_contact",
-      "lead_campaign",
-      "lead_reason_reject",
-      "lead_linkedin",
-      "contact_rodo_1",
-      "contact_rodo2",
-      "lead_profilowanie",
-      "lead_zainteresowanie",
-      "lead_note",
-      "lead_date_creation",
-      "lead_days_count",
-      "lead_position",
-      "lead_decisionmaker",
-      "lead_nr",
-      "lead_iql_date",
-      "lead_mql_date",
-      "lead_sql_date",
-      "lead_opp_date",
-      "lead_inquire_date",
-      "lead_offer_date",
-      "lead_invoice_date",
-      "lead_iql_count",
-      "lead_mql_count",
-      "lead_sql_count"
-    ],
-    "relations": {
-      "leadid": {
-        "module": "vtiger_crmentity",
-        "table": "vtiger_crmentity",
-        "pk": "crmid"
+    "Documents": {
+      "table": "documents",
+      "fields": {
+        "notes_title": {
+          "column": "title",
+          "label": "Title",
+          "uitype": 2,
+          "required": true,
+          "readonly": false,
+          "type": "text"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "filename": {
+          "column": "filename",
+          "label": "File Name",
+          "uitype": 28,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "notecontent": {
+          "column": "notecontent",
+          "label": "Note",
+          "uitype": 300,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "filetype": {
+          "column": "filetype",
+          "label": "File Type",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "filesize": {
+          "column": "filesize",
+          "label": "File Size",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "filelocationtype": {
+          "column": "filelocationtype",
+          "label": "Download Type",
+          "uitype": 27,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "fileversion": {
+          "column": "fileversion",
+          "label": "Version",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "filestatus": {
+          "column": "filestatus",
+          "label": "Active",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "filedownloadcount": {
+          "column": "filedownloadcount",
+          "label": "Download Count",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "folderid": {
+          "column": "folderid",
+          "label": "Folder Name",
+          "uitype": 302,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "note_no": {
+          "column": "note_no",
+          "label": "Document No",
+          "uitype": 4,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "modifiedby": {
+          "column": "modifiedby",
+          "label": "Last Modified By",
+          "uitype": 52,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "ossdc_status": {
+          "column": "ossdc_status",
+          "label": "ossdc_status",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "shownerid": {
+          "column": "shownerid",
+          "label": "Share with users",
+          "uitype": 120,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "was_read": {
+          "column": "was_read",
+          "label": "Was read",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "private": {
+          "column": "private",
+          "label": "FL_IS_PRIVATE",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "created_user_id": {
+          "column": "smcreatorid",
+          "label": "Created By",
+          "uitype": 52,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "dokument_firma": {
+          "column": "dokument_firma",
+          "label": "Firma powiązana",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "dokument_osoba": {
+          "column": "dokument_osoba",
+          "label": "Osoba powiązana",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "dokument_proces": {
+          "column": "dokument_proces",
+          "label": "Proces powiązany",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "dokument_kampania": {
+          "column": "dokument_kampania",
+          "label": "Kampania powiązana",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        }
       }
     },
-    "searchFields": [
-      "lead_firstname",
-      "lead_lastname",
-      "email",
-      "company"
-    ]
-  },
-  "Quotes": {
-    "table": "u_yf_squotes",
-    "pk": "squotesid",
-    "fields": [
-      "squotesid",
-      "squotes_no",
-      "subject",
-      "salesprocessid",
-      "scalculationsid",
-      "category",
-      "squotes_status",
-      "accountid",
-      "company",
-      "sum_time",
-      "sum_total",
-      "sum_marginp",
-      "sum_margin",
-      "sum_gross",
-      "sum_discount",
-      "valid_until",
-      "parent_id",
-      "offers_account",
-      "offer_lead",
-      "offer_contact",
-      "offer_date",
-      "offer_opp_date",
-      "offer_lead_date",
-      "lead_zainteresowanie",
-      "offer_campaign",
-      "offer_other_contacts",
-      "offers_qty",
-      "offer_payment",
-      "squotesid"
-    ],
-    "relations": {
-      "squotesid": {
-        "module": "vtiger_crmentity",
-        "table": "vtiger_crmentity",
-        "pk": "crmid"
+    "Calendar": {
+      "table": "calendar",
+      "fields": {
+        "subject": {
+          "column": "subject",
+          "label": "Opis skrócony",
+          "uitype": 2,
+          "required": true,
+          "readonly": false,
+          "type": "text"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "date_start": {
+          "column": "date_start",
+          "label": "Start Date & Time",
+          "uitype": 6,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "time_start": {
+          "column": "time_start",
+          "label": "Time Start",
+          "uitype": 14,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "time_end": {
+          "column": "time_end",
+          "label": "End Time",
+          "uitype": 14,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "due_date": {
+          "column": "due_date",
+          "label": "Due Date & Time",
+          "uitype": 23,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "process": {
+          "column": "process",
+          "label": "FL_PROCESS",
+          "uitype": 66,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "link": {
+          "column": "link",
+          "label": "FL_RELATION",
+          "uitype": 67,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "activitystatus": {
+          "column": "status",
+          "label": "Status",
+          "uitype": 15,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "taskpriority": {
+          "column": "priority",
+          "label": "Priority",
+          "uitype": 15,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "sendnotification": {
+          "column": "sendnotification",
+          "label": "Send Notification",
+          "uitype": 56,
+          "required": true,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "activitytype": {
+          "column": "activitytype",
+          "label": "Activity Type",
+          "uitype": 16,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "visibility": {
+          "column": "visibility",
+          "label": "Visibility",
+          "uitype": 16,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "description": {
+          "column": "description",
+          "label": "Opis dodatkowy",
+          "uitype": 19,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "duration_hours": {
+          "column": "duration_hours",
+          "label": "Duration",
+          "uitype": 63,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "duration_minutes": {
+          "column": "duration_minutes",
+          "label": "Duration Minutes",
+          "uitype": 16,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "location": {
+          "column": "location",
+          "label": "Location",
+          "uitype": 1,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "reminder_time": {
+          "column": "reminder_time",
+          "label": "Send Reminder",
+          "uitype": 30,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "notime": {
+          "column": "notime",
+          "label": "No Time",
+          "uitype": 56,
+          "required": true,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "modifiedby": {
+          "column": "modifiedby",
+          "label": "Last Modified By",
+          "uitype": 52,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "created_user_id": {
+          "column": "smcreatorid",
+          "label": "Created By",
+          "uitype": 52,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "shownerid": {
+          "column": "shownerid",
+          "label": "Share with users",
+          "uitype": 120,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "was_read": {
+          "column": "was_read",
+          "label": "Was read",
+          "uitype": 56,
+          "required": true,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "allday": {
+          "column": "allday",
+          "label": "All day",
+          "uitype": 56,
+          "required": true,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "state": {
+          "column": "state",
+          "label": "LBL_STATE",
+          "uitype": 16,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "followup": {
+          "column": "followup",
+          "label": "LBL_FOLLOWUP",
+          "uitype": 10,
+          "required": true,
+          "readonly": false,
+          "type": "relation"
+        },
+        "subprocess": {
+          "column": "subprocess",
+          "label": "FL_SUB_PROCESS",
+          "uitype": 68,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "reapeat": {
+          "column": "reapeat",
+          "label": "FL_REAPEAT",
+          "uitype": 56,
+          "required": true,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "recurrence": {
+          "column": "recurrence",
+          "label": "FL_RECURRENCE",
+          "uitype": 342,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "linkextend": {
+          "column": "linkextend",
+          "label": "FL_RELATION_EXTEND",
+          "uitype": 65,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "subprocess_sl": {
+          "column": "subprocess_sl",
+          "label": "FL_SUBPROCESS_SECOND_LEVEL",
+          "uitype": 64,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "meeting_url": {
+          "column": "meeting_url",
+          "label": "FL_MEETING_URL",
+          "uitype": 326,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        }
       }
     },
-    "searchFields": [
-      "subject",
-      "company"
-    ]
-  },
-  "Accounts": {
-    "table": "vtiger_account",
-    "pk": "accountid",
-    "fields": [
-      "accountid",
-      "account_no",
-      "accountname",
-      "parentid",
-      "account_type",
-      "industry",
-      "annualrevenue",
-      "siccode",
-      "phone",
-      "otherphone",
-      "email1",
-      "email2",
-      "website",
-      "fax",
-      "employees",
-      "emailoptout",
-      "isconvertedfromlead",
-      "vat_id",
-      "registration_number_1",
-      "registration_number_2",
-      "verification",
-      "no_approval",
-      "balance",
-      "payment_balance",
-      "legal_form",
-      "sum_time",
-      "inventorybalance",
-      "discount",
-      "creditlimit",
-      "products",
-      "services",
-      "last_invoice_date",
-      "accounts_status",
-      "phone_extra",
-      "fax_extra",
-      "otherphone_extra",
-      "pricebook_id",
-      "check_stock_levels",
-      "sum_open_orders",
-      "taxes",
-      "accounts_available_taxes",
-      "account_short_name",
-      "api_accounts",
-      "account_linkedin",
-      "logo_account"
-    ],
-    "relations": {
-      "accountid": {
-        "module": "vtiger_crmentity",
-        "table": "vtiger_crmentity",
-        "pk": "crmid"
+    "Campaigns": {
+      "table": "campaigns",
+      "fields": {
+        "campaignname": {
+          "column": "campaignname",
+          "label": "Campaign Name",
+          "uitype": 2,
+          "required": true,
+          "readonly": false,
+          "type": "text"
+        },
+        "campaign_no": {
+          "column": "campaign_no",
+          "label": "Campaign No",
+          "uitype": 4,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaigntype": {
+          "column": "campaigntype",
+          "label": "Campaign Type",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "campaignstatus": {
+          "column": "campaignstatus",
+          "label": "FL_CAMPAIGN_STATUS",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "closingdate": {
+          "column": "closingdate",
+          "label": "Expected Close Date",
+          "uitype": 23,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "numsent": {
+          "column": "numsent",
+          "label": "Num Sent",
+          "uitype": 9,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "targetaudience": {
+          "column": "targetaudience",
+          "label": "Target Audience",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedby": {
+          "column": "modifiedby",
+          "label": "Last Modified By",
+          "uitype": 52,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "expectedresponse": {
+          "column": "expectedresponse",
+          "label": "Expected Response",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "expectedrevenue": {
+          "column": "expectedrevenue",
+          "label": "Expected Revenue",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "budgetcost": {
+          "column": "budgetcost",
+          "label": "Budget Cost",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "actualcost": {
+          "column": "actualcost",
+          "label": "Actual Cost",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "expectedresponsecount": {
+          "column": "expectedresponsecount",
+          "label": "Expected Response Count",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "expectedsalescount": {
+          "column": "expectedsalescount",
+          "label": "Expected Sales Count",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "expectedroi": {
+          "column": "expectedroi",
+          "label": "Expected ROI",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "actualresponsecount": {
+          "column": "actualresponsecount",
+          "label": "Łączna ilość pozyskanych leadów",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "actualsalescount": {
+          "column": "actualsalescount",
+          "label": "Actual Sales Count",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "actualroi": {
+          "column": "actualroi",
+          "label": "Actual ROI",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "description": {
+          "column": "description",
+          "label": "Description",
+          "uitype": 300,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "shownerid": {
+          "column": "shownerid",
+          "label": "Share with users",
+          "uitype": 120,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "was_read": {
+          "column": "was_read",
+          "label": "Was read",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "sum_time": {
+          "column": "sum_time",
+          "label": "FL_TOTAL_TIME_H",
+          "uitype": 8,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "crmactivity": {
+          "column": "crmactivity",
+          "label": "LBL_CRMACTIVITY",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "created_user_id": {
+          "column": "smcreatorid",
+          "label": "Created By",
+          "uitype": 52,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_start": {
+          "column": "campaign_start",
+          "label": "Planowana data rozpoczęcia",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "capaign_cpl": {
+          "column": "capaign_cpl",
+          "label": "Jednostkowy Koszt Pozyskania leada (CPL)",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "capaign_costs": {
+          "column": "capaign_costs",
+          "label": "Całkowity koszt kampanii",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_costs_ads": {
+          "column": "campaign_costs_ads",
+          "label": "Koszty reklamy online",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_cost_imprint": {
+          "column": "campaign_cost_imprint",
+          "label": "Koszty druku i wysyłki materiałów promocyjnych",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_costs_content": {
+          "column": "campaign_costs_content",
+          "label": "Koszty produkcji treści",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_costs_influencers": {
+          "column": "campaign_costs_influencers",
+          "label": "Honoraria influencerów i ambasadorów marki",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_costs_event": {
+          "column": "campaign_costs_event",
+          "label": "Koszty eventów",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_costs_mkt_team": {
+          "column": "campaign_costs_mkt_team",
+          "label": "Wynagrodzenia zespołu marketingowego",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_costs_tools": {
+          "column": "campaign_costs_tools",
+          "label": "Koszty narzędzi i oprogramowania",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_costs_seosem": {
+          "column": "campaign_costs_seosem",
+          "label": "Koszty SEO i SEM",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_costs_research": {
+          "column": "campaign_costs_research",
+          "label": "Koszty badań rynku",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_costs_partnerships": {
+          "column": "campaign_costs_partnerships",
+          "label": "Koszty partnerskie i afiliacyjne",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_costs_travel": {
+          "column": "campaign_costs_travel",
+          "label": "Koszty podróży i zakwaterowania",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_costs_btl": {
+          "column": "campaign_costs_btl",
+          "label": "Koszty gadżetów i upominków",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_costs_pr": {
+          "column": "campaign_costs_pr",
+          "label": "Koszty PR i media relations",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_costs_bonus": {
+          "column": "campaign_costs_bonus",
+          "label": "Koszt bonusów lub rabatów w ramach kampanii",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_costs_other": {
+          "column": "campaign_costs_other",
+          "label": "Inne koszty związane z kampanią",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_costs_lawyer": {
+          "column": "campaign_costs_lawyer",
+          "label": "Koszt obsługi prawnej kampanii",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_costs_outsourcing": {
+          "column": "campaign_costs_outsourcing",
+          "label": "Koszt zarządzania kampanią przez firmy zewnętrzne",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_cpl_sql": {
+          "column": "campaign_cpl_sql",
+          "label": "Jednostkowy Koszt Pozyskania SQL (CPL)",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_cpl_opp": {
+          "column": "campaign_cpl_opp",
+          "label": "Jednostkowy Koszt Pozyskania Szans Sprzedaży (CPO)",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "campaign_conv_opportunity": {
+          "column": "campaign_conv_opportunity",
+          "label": "Ilość pozyskanych Szans Sprzedaży",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "campaign_sql_count": {
+          "column": "campaign_sql_count",
+          "label": "Ilość pozyskanych SQL",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "campaign_reject_count": {
+          "column": "campaign_reject_count",
+          "label": "Ilość odrzuconych leadów",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        }
       }
     },
-    "searchFields": [
-      "accountname",
-      "account_short_name",
-      "email1",
-      "phone",
-      "website"
-    ]
-  },
-  "Invoices": {
-    "table": "u_yf_finvoice",
-    "pk": "finvoiceid",
-    "fields": [
-      "finvoiceid",
-      "subject",
-      "number",
-      "paymentdate",
-      "saledate",
-      "accountid",
-      "finvoice_formpayment",
-      "sum_total",
-      "sum_gross",
-      "finvoice_status",
-      "finvoice_type",
-      "pscategory",
-      "issue_time",
-      "ssalesprocessesid",
-      "projectid",
-      "payment_status",
-      "payment_sum",
-      "invoices_account",
-      "invoice_person",
-      "invoice_other_persons",
-      "invoice_campaign",
-      "lead_zainteresowanie",
-      "offer_payment",
-      "invoice_lead",
-      "invoice_offer",
-      "invoice_inquire",
-      "invoice_lead_date",
-      "invoice_oppo_date",
-      "invoice_offer_date",
-      "invoice_inquiry_date",
-      "invoice_payment_status",
-      "finvoiceid"
-    ],
-    "relations": {
-      "finvoiceid": {
-        "module": "vtiger_crmentity",
-        "table": "vtiger_crmentity",
-        "pk": "crmid"
+    "Users": {
+      "table": "users",
+      "fields": {
+        "user_name": {
+          "column": "user_name",
+          "label": "User Name",
+          "uitype": 106,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "is_admin": {
+          "column": "is_admin",
+          "label": "Admin",
+          "uitype": 156,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "user_password": {
+          "column": "user_password",
+          "label": "Password",
+          "uitype": 99,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "confirm_password": {
+          "column": "confirm_password",
+          "label": "Confirm Password",
+          "uitype": 99,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "first_name": {
+          "column": "first_name",
+          "label": "First Name",
+          "uitype": 1,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "last_name": {
+          "column": "last_name",
+          "label": "Last Name",
+          "uitype": 2,
+          "required": true,
+          "readonly": false,
+          "type": "text"
+        },
+        "roleid": {
+          "column": "roleid",
+          "label": "Role",
+          "uitype": 98,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "email1": {
+          "column": "email1",
+          "label": "Email",
+          "uitype": 104,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "status": {
+          "column": "status",
+          "label": "Status",
+          "uitype": 115,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "activity_view": {
+          "column": "activity_view",
+          "label": "Default Activity View",
+          "uitype": 16,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "hour_format": {
+          "column": "hour_format",
+          "label": "Calendar Hour Format",
+          "uitype": 16,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "start_hour": {
+          "column": "start_hour",
+          "label": "Day starts at",
+          "uitype": 16,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "reports_to_id": {
+          "column": "reports_to_id",
+          "label": "Reports To",
+          "uitype": 101,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "date_format": {
+          "column": "date_format",
+          "label": "Date Format",
+          "uitype": 16,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "description": {
+          "column": "description",
+          "label": "Description",
+          "uitype": 21,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "user_pbx": {
+          "column": "user_pbx",
+          "label": "FL_USER_PBX",
+          "uitype": 86,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "accesskey": {
+          "column": "accesskey",
+          "label": "Webservice Access Key",
+          "uitype": 3,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "time_zone": {
+          "column": "time_zone",
+          "label": "Time Zone",
+          "uitype": 16,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "currency_id": {
+          "column": "currency_id",
+          "label": "Currency",
+          "uitype": 117,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "currency_grouping_pattern": {
+          "column": "currency_grouping_pattern",
+          "label": "Digit Grouping Pattern",
+          "uitype": 16,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "currency_decimal_separator": {
+          "column": "currency_decimal_separator",
+          "label": "Decimal Separator",
+          "uitype": 16,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "currency_grouping_separator": {
+          "column": "currency_grouping_separator",
+          "label": "Digit Grouping Separator",
+          "uitype": 16,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "currency_symbol_placement": {
+          "column": "currency_symbol_placement",
+          "label": "Symbol Placement",
+          "uitype": 16,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "imagename": {
+          "column": "imagename",
+          "label": "User Image",
+          "uitype": 69,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "internal_mailer": {
+          "column": "internal_mailer",
+          "label": "FL_INTERNAL_MAIL_COMPOSER",
+          "uitype": 87,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "theme": {
+          "column": "theme",
+          "label": "Theme",
+          "uitype": 31,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "language": {
+          "column": "language",
+          "label": "Language",
+          "uitype": 32,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "reminder_interval": {
+          "column": "reminder_interval",
+          "label": "Reminder Interval",
+          "uitype": 16,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "phone_crm_extension": {
+          "column": "phone_crm_extension",
+          "label": "CRM Phone Extension",
+          "uitype": 11,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "no_of_currency_decimals": {
+          "column": "no_of_currency_decimals",
+          "label": "Number Of Currency Decimals",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "truncate_trailing_zeros": {
+          "column": "truncate_trailing_zeros",
+          "label": "Truncate Trailing Zeros",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "dayoftheweek": {
+          "column": "dayoftheweek",
+          "label": "Starting Day of the week",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "othereventduration": {
+          "column": "othereventduration",
+          "label": "Other Event Duration",
+          "uitype": 315,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "default_record_view": {
+          "column": "default_record_view",
+          "label": "Default Record View",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "leftpanelhide": {
+          "column": "leftpanelhide",
+          "label": "LBL_MENU_EXPANDED_BY_DEFAULT",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "rowheight": {
+          "column": "rowheight",
+          "label": "Row Height",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "defaulteventstatus": {
+          "column": "defaulteventstatus",
+          "label": "Default Event Status",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "defaultactivitytype": {
+          "column": "defaultactivitytype",
+          "label": "Default Activity Type",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "is_owner": {
+          "column": "is_owner",
+          "label": "Account Owner",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "end_hour": {
+          "column": "end_hour",
+          "label": "Day ends at",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "emailoptout": {
+          "column": "emailoptout",
+          "label": "Approval for email",
+          "uitype": 56,
+          "required": true,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "available": {
+          "column": "available",
+          "label": "FL_AVAILABLE",
+          "uitype": 56,
+          "required": true,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "auto_assign": {
+          "column": "auto_assign",
+          "label": "FL_AUTO_ASSIGN_RECORDS",
+          "uitype": 56,
+          "required": true,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "records_limit": {
+          "column": "records_limit",
+          "label": "FL_RECORD_LIMIT_IN_MODULE",
+          "uitype": 7,
+          "required": true,
+          "readonly": false,
+          "type": "number"
+        },
+        "phone_crm_extension_extra": {
+          "column": "phone_crm_extension_extra",
+          "label": "FL_PHONE_CUSTOM_INFORMATION",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "date_password_change": {
+          "column": "date_password_change",
+          "label": "FL_DATE_PASSWORD_CHANGE",
+          "uitype": 80,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "force_password_change": {
+          "column": "force_password_change",
+          "label": "FL_FORCE_PASSWORD_CHANGE",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "view_date_format": {
+          "column": "view_date_format",
+          "label": "FL_VIEW_DATE_FORMAT",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "authy_methods": {
+          "column": "authy_methods",
+          "label": "FL_AUTHY_METHODS",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "authy_secret_totp": {
+          "column": "authy_secret_totp",
+          "label": "FL_AUTHY_SECRET_TOTP",
+          "uitype": 312,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "login_method": {
+          "column": "login_method",
+          "label": "FL_LOGIN_METHOD",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "sync_carddav": {
+          "column": "sync_carddav",
+          "label": "LBL_CARDDAV_SYNCHRONIZATION_CONTACT",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "sync_caldav": {
+          "column": "sync_caldav",
+          "label": "LBL_CALDAV_SYNCHRONIZATION_CALENDAR",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "sync_carddav_default_country": {
+          "column": "sync_carddav_default_country",
+          "label": "LBL_CARDDAV_DEFAULT_COUNTRY",
+          "uitype": 35,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "default_search_module": {
+          "column": "default_search_module",
+          "label": "FL_DEFAULT_SEARCH_MODULE",
+          "uitype": 301,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "default_search_override": {
+          "column": "default_search_override",
+          "label": "FL_OVERRIDE_SEARCH_MODULE",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "primary_phone_extra": {
+          "column": "primary_phone_extra",
+          "label": "FL_PHONE_CUSTOM_INFORMATION",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "primary_phone": {
+          "column": "primary_phone",
+          "label": "FL_PRIMARY_PHONE",
+          "uitype": 11,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "mail_scanner_actions": {
+          "column": "mail_scanner_actions",
+          "label": "FL_MAIL_SCANNER_ACTIONS",
+          "uitype": 322,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "mail_scanner_fields": {
+          "column": "mail_scanner_fields",
+          "label": "FL_MAIL_SCANNER_FIELDS",
+          "uitype": 323,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "secondary_email": {
+          "column": "secondary_email",
+          "label": "FL_SECONDARY_EMAIL",
+          "uitype": 13,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "default_search_operator": {
+          "column": "default_search_operator",
+          "label": "FL_DEFAULT_SEARCH_OPERATOR",
+          "uitype": 16,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "super_user": {
+          "column": "super_user",
+          "label": "FL_SUPER_USER",
+          "uitype": 56,
+          "required": true,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "calendar_all_users_by_default": {
+          "column": "calendar_all_users_by_default",
+          "label": "FL_CALENDAR_ALL_USERS_BY_DEFAULT",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "mail_popup": {
+          "column": "mail_popup",
+          "label": "FL_MAIL_POPUP",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        }
       }
     },
-    "searchFields": [
-      "subject",
-      "finvoice_status",
-      "sum_total",
-      "sum_gross"
-    ]
+    "Import": {
+      "table": "import",
+      "fields": {}
+    },
+    "ModTracker": {
+      "table": "modtracker",
+      "fields": {}
+    },
+    "Services": {
+      "table": "services",
+      "fields": {
+        "servicename": {
+          "column": "servicename",
+          "label": "Service Name",
+          "uitype": 2,
+          "required": true,
+          "readonly": false,
+          "type": "text"
+        },
+        "service_no": {
+          "column": "service_no",
+          "label": "Service No",
+          "uitype": 4,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "discontinued": {
+          "column": "discontinued",
+          "label": "Service Active",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedby": {
+          "column": "modifiedby",
+          "label": "Last Modified By",
+          "uitype": 52,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "service_usageunit": {
+          "column": "service_usageunit",
+          "label": "Usage Unit",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "qty_per_unit": {
+          "column": "qty_per_unit",
+          "label": "No of Units",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Owner",
+          "uitype": 53,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "pscategory": {
+          "column": "pscategory",
+          "label": "Service Category",
+          "uitype": 302,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "unit_price": {
+          "column": "unit_price",
+          "label": "Price",
+          "uitype": 360,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "description": {
+          "column": "description",
+          "label": "Description",
+          "uitype": 300,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "created_user_id": {
+          "column": "smcreatorid",
+          "label": "Created By",
+          "uitype": 52,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "taxes": {
+          "column": "taxes",
+          "label": "FL_TAXES",
+          "uitype": 303,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "purchase": {
+          "column": "purchase",
+          "label": "FL_COST",
+          "uitype": 360,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        }
+      }
+    },
+    "ModComments": {
+      "table": "modcomments",
+      "fields": {
+        "commentcontent": {
+          "column": "commentcontent",
+          "label": "Comment",
+          "uitype": 300,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "related_to": {
+          "column": "related_to",
+          "label": "Related To",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "creator": {
+          "column": "smcreatorid",
+          "label": "Creator",
+          "uitype": 52,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "parent_comments": {
+          "column": "parent_comments",
+          "label": "Related To Comments",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "customer": {
+          "column": "customer",
+          "label": "Customer",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "userid": {
+          "column": "userid",
+          "label": "UserId",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "reasontoedit": {
+          "column": "reasontoedit",
+          "label": "ReasonToEdit",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "created_user_id": {
+          "column": "smcreatorid",
+          "label": "Created By",
+          "uitype": 52,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "parents": {
+          "column": "parents",
+          "label": "FL_PARENTS",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        }
+      }
+    },
+    "OSSMailScanner": {
+      "table": "ossmailscanner",
+      "fields": {}
+    },
+    "OSSMailView": {
+      "table": "ossmailview",
+      "fields": {
+        "ossmailview_no": {
+          "column": "ossmailview_no",
+          "label": "number",
+          "uitype": 4,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "from_email": {
+          "column": "from_email",
+          "label": "From",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "to_email": {
+          "column": "to_email",
+          "label": "To",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "subject": {
+          "column": "subject",
+          "label": "Subject",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "cc_email": {
+          "column": "cc_email",
+          "label": "CC",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "bcc_email": {
+          "column": "bcc_email",
+          "label": "BCC",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "ossmailview_sendtype": {
+          "column": "ossmailview_sendtype",
+          "label": "SendType",
+          "uitype": 15,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "msgid": {
+          "column": "msgid",
+          "label": "messageid",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "reply_to_email": {
+          "column": "reply_to_email",
+          "label": "Reply_to_email",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "attachments_exist": {
+          "column": "attachments_exist",
+          "label": "Attachments_Exist",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "rc_user": {
+          "column": "rc_user",
+          "label": "RC user",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "type": {
+          "column": "type",
+          "label": "Type",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "from_id": {
+          "column": "from_id",
+          "label": "FromID",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "to_id": {
+          "column": "to_id",
+          "label": "ToID",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "uid": {
+          "column": "uid",
+          "label": "Id",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "mbox": {
+          "column": "mbox",
+          "label": "mbox",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "verify": {
+          "column": "verify",
+          "label": "LBL_VERIFY",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "content": {
+          "column": "content",
+          "label": "Content",
+          "uitype": 300,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "orginal_mail": {
+          "column": "orginal_mail",
+          "label": "LBL_ORGINAL_MAIL_CONTENT",
+          "uitype": 300,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "shownerid": {
+          "column": "shownerid",
+          "label": "Share with users",
+          "uitype": 120,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "was_read": {
+          "column": "was_read",
+          "label": "Was read",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "date": {
+          "column": "date",
+          "label": "Date of receipt",
+          "uitype": 70,
+          "required": false,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "private": {
+          "column": "private",
+          "label": "FL_IS_PRIVATE",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "created_user_id": {
+          "column": "smcreatorid",
+          "label": "Created By",
+          "uitype": 52,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        }
+      }
+    },
+    "PaymentsIn": {
+      "table": "paymentsin",
+      "fields": {
+        "paymentsno": {
+          "column": "paymentsno",
+          "label": "Numer wpłaty",
+          "uitype": 4,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "paymentsname": {
+          "column": "paymentsname",
+          "label": "LBL_PAYMENTSNAME",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": false,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": false,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "paymentsvalue": {
+          "column": "paymentsvalue",
+          "label": "LBL_PAYMENTSVALUE",
+          "uitype": 72,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "currency_id": {
+          "column": "currency_id",
+          "label": "LBL_PAYMENTSCURRENCY",
+          "uitype": 117,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "bank_account": {
+          "column": "bank_account",
+          "label": "LBL_BANK_ACCOUNT",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "ssingleordersid": {
+          "column": "ssingleordersid",
+          "label": "FL_ORDER",
+          "uitype": 10,
+          "required": false,
+          "readonly": true,
+          "type": "relation"
+        },
+        "finvoiceid": {
+          "column": "finvoiceid",
+          "label": "FL_INVOICE",
+          "uitype": 10,
+          "required": false,
+          "readonly": true,
+          "type": "relation"
+        },
+        "created_user_id": {
+          "column": "smcreatorid",
+          "label": "Created By",
+          "uitype": 52,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        }
+      }
+    },
+    "LettersIn": {
+      "table": "lettersin",
+      "fields": {
+        "number": {
+          "column": "number",
+          "label": "Number",
+          "uitype": 4,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "title": {
+          "column": "title",
+          "label": "Title",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "date_adoption": {
+          "column": "date_adoption",
+          "label": "Date of adoption",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lin_type_ship": {
+          "column": "lin_type_ship",
+          "label": "Type of shipping",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "lin_type_doc": {
+          "column": "lin_type_doc",
+          "label": "Type of document",
+          "uitype": 33,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lin_status": {
+          "column": "lin_status",
+          "label": "Status",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "relatedid": {
+          "column": "relatedid",
+          "label": "Related",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "person_receiving": {
+          "column": "person_receiving",
+          "label": "Person receiving",
+          "uitype": 53,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "deadline_reply": {
+          "column": "deadline_reply",
+          "label": "Deadline for reply",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "cocument_no": {
+          "column": "cocument_no",
+          "label": "Document no",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "no_internal": {
+          "column": "no_internal",
+          "label": "No internal",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "parentid": {
+          "column": "parentid",
+          "label": "Parent letters",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "lin_dimensions": {
+          "column": "lin_dimensions",
+          "label": "Overall dimensions",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "private": {
+          "column": "private",
+          "label": "FL_IS_PRIVATE",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "custom_sender": {
+          "column": "custom_sender",
+          "label": "FL_CUSTOM_SENDER",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lin_type": {
+          "column": "lin_type",
+          "label": "FL_TYPE",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "cash_amount_on_delivery": {
+          "column": "cash_amount_on_delivery",
+          "label": "FL_CASH_AMOUNT_ON_DELIVERY",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "date_of_receipt": {
+          "column": "date_of_receipt",
+          "label": "FL_DATE_OF_RECEIPT",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "outgoing_correspondence": {
+          "column": "outgoing_correspondence",
+          "label": "FL_OUTGOING_CORRESPONDENCE",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "internal_notes": {
+          "column": "internal_notes",
+          "label": "FL_INTERNAL_NOTES",
+          "uitype": 300,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "public_notes": {
+          "column": "public_notes",
+          "label": "FL_PUBLIC_NOTES",
+          "uitype": 300,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "created_user_id": {
+          "column": "smcreatorid",
+          "label": "Created By",
+          "uitype": 52,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        }
+      }
+    },
+    "LettersOut": {
+      "table": "lettersout",
+      "fields": {
+        "number": {
+          "column": "number",
+          "label": "Number",
+          "uitype": 4,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "title": {
+          "column": "title",
+          "label": "Title",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "date_adoption": {
+          "column": "date_adoption",
+          "label": "Date of adoption",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lout_type_ship": {
+          "column": "lout_type_ship",
+          "label": "Type of shipping",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "lout_type_doc": {
+          "column": "lout_type_doc",
+          "label": "Type of document",
+          "uitype": 33,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lout_status": {
+          "column": "lout_status",
+          "label": "Status",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "relatedid": {
+          "column": "relatedid",
+          "label": "Related",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "person_receiving": {
+          "column": "person_receiving",
+          "label": "Person receiving",
+          "uitype": 53,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "deadline_reply": {
+          "column": "deadline_reply",
+          "label": "Deadline for reply",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "cocument_no": {
+          "column": "cocument_no",
+          "label": "Document no",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "no_internal": {
+          "column": "no_internal",
+          "label": "No internal",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "parentid": {
+          "column": "parentid",
+          "label": "Parent letters",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "lout_dimensions": {
+          "column": "lout_dimensions",
+          "label": "Overall dimensions",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "description": {
+          "column": "description",
+          "label": "Notes",
+          "uitype": 19,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "private": {
+          "column": "private",
+          "label": "FL_IS_PRIVATE",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "incoming_correspondence": {
+          "column": "incoming_correspondence",
+          "label": "FL_INCOMING_CORRESPONDENCE",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "created_user_id": {
+          "column": "smcreatorid",
+          "label": "Created By",
+          "uitype": 52,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        }
+      }
+    },
+    "SSalesProcesses": {
+      "table": "ssalesprocesses",
+      "fields": {
+        "subject": {
+          "column": "subject",
+          "label": "LBL_SUBJECT",
+          "uitype": 2,
+          "required": false,
+          "readonly": false,
+          "type": "text"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "shownerid": {
+          "column": "shownerid",
+          "label": "Share with users",
+          "uitype": 120,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "ssalesprocesses_no": {
+          "column": "ssalesprocesses_no",
+          "label": "LBL_NUMBER",
+          "uitype": 4,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": false,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": false,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "estimated": {
+          "column": "estimated",
+          "label": "FL_ESTIMATED",
+          "uitype": 71,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "estimated_date": {
+          "column": "estimated_date",
+          "label": "FL_ESTIMATED_DATE",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "ssalesprocesses_type": {
+          "column": "ssalesprocesses_type",
+          "label": "FL_TYPE",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "ssalesprocesses_status": {
+          "column": "ssalesprocesses_status",
+          "label": "FL_STATUS",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "campaignid": {
+          "column": "campaignid",
+          "label": "FL_CAMPAIGN",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "parentid": {
+          "column": "parentid",
+          "label": "FL_MEMBER_OF",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "opportunity_company": {
+          "column": "opportunity_company",
+          "label": "Kontrahent",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "opportunity_contact": {
+          "column": "opportunity_contact",
+          "label": "Kontakt",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "lead_zainteresowanie": {
+          "column": "lead_zainteresowanie",
+          "label": "Zainteresowanie",
+          "uitype": 33,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "oportunity_other_contact": {
+          "column": "oportunity_other_contact",
+          "label": "Dodatkowe osoby",
+          "uitype": 321,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lead_reason_reject": {
+          "column": "lead_reason_reject",
+          "label": "Powód niepowodzenia",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "opportunity_lead": {
+          "column": "opportunity_lead",
+          "label": "Lead powiązany",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "opportunity_date": {
+          "column": "opportunity_date",
+          "label": "Data powstania szansy",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "opportunity_days_count": {
+          "column": "opportunity_days_count",
+          "label": "Ilość dni od utworzenia szansy sprzedaży",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "opportunity_failure_note": {
+          "column": "opportunity_failure_note",
+          "label": "Dodatkowe info dotyczące niepowodzenia",
+          "uitype": 21,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "opportunity_lead_date": {
+          "column": "opportunity_lead_date",
+          "label": "Data utworzenia leada",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "opportunity_qty": {
+          "column": "opportunity_qty",
+          "label": "Ilość szans sprzedaży",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "opportunity_offer_done": {
+          "column": "opportunity_offer_done",
+          "label": "Wysłana oferta",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "opportunity_meeting_done": {
+          "column": "opportunity_meeting_done",
+          "label": "Spotkanie z klientem",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "opportunity_needs_done": {
+          "column": "opportunity_needs_done",
+          "label": "Zidentyfikowane potrzeby klienta",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        }
+      }
+    },
+    "SQuotes": {
+      "table": "squotes",
+      "fields": {
+        "subject": {
+          "column": "subject",
+          "label": "Nazwa oferty",
+          "uitype": 2,
+          "required": false,
+          "readonly": false,
+          "type": "text"
+        },
+        "salesprocessid": {
+          "column": "salesprocessid",
+          "label": "SINGLE_SSalesProcesses",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "squotes_status": {
+          "column": "squotes_status",
+          "label": "Status oferty",
+          "uitype": 15,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "shownerid": {
+          "column": "shownerid",
+          "label": "Share with users",
+          "uitype": 120,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": false,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "squotes_no": {
+          "column": "squotes_no",
+          "label": "Numer oferty",
+          "uitype": 4,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": false,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "sum_total": {
+          "column": "sum_total",
+          "label": "FL_TOTAL_PRICE",
+          "uitype": 317,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "sum_gross": {
+          "column": "sum_gross",
+          "label": "FL_SUM_GROSS",
+          "uitype": 317,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "valid_until": {
+          "column": "valid_until",
+          "label": "FL_VALID_UNTIL",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "created_user_id": {
+          "column": "smcreatorid",
+          "label": "Created By",
+          "uitype": 52,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "offers_account": {
+          "column": "offers_account",
+          "label": "Kontrahent",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "offer_lead": {
+          "column": "offer_lead",
+          "label": "Lead powiązany",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "offer_contact": {
+          "column": "offer_contact",
+          "label": "Osoba kontaktowa",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "offer_date": {
+          "column": "offer_date",
+          "label": "Data utworzenia oferty",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "offer_opp_date": {
+          "column": "offer_opp_date",
+          "label": "Data powstania szansy",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "offer_lead_date": {
+          "column": "offer_lead_date",
+          "label": "Data powstania leada",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "lead_zainteresowanie": {
+          "column": "lead_zainteresowanie",
+          "label": "Zainteresowanie",
+          "uitype": 33,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "offer_campaign": {
+          "column": "offer_campaign",
+          "label": "Źródło pochodzenia",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "offer_other_contacts": {
+          "column": "offer_other_contacts",
+          "label": "Dodatkowe osoby",
+          "uitype": 321,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "offers_qty": {
+          "column": "offers_qty",
+          "label": "Ilość ofert",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "offer_payment": {
+          "column": "offer_payment",
+          "label": "Termin płatności",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        }
+      }
+    },
+    "SSingleOrders": {
+      "table": "ssingleorders",
+      "fields": {
+        "subject": {
+          "column": "subject",
+          "label": "Nazwa zamówienia",
+          "uitype": 2,
+          "required": false,
+          "readonly": false,
+          "type": "text"
+        },
+        "salesprocessid": {
+          "column": "salesprocessid",
+          "label": "SINGLE_SSalesProcesses",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "squotesid": {
+          "column": "squotesid",
+          "label": "SINGLE_SQuotes",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "ssingleorders_status": {
+          "column": "ssingleorders_status",
+          "label": "LBL_STATUS",
+          "uitype": 15,
+          "required": true,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "date_start": {
+          "column": "date_start",
+          "label": "LBL_REALIZATION_START_DATE",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "date_end": {
+          "column": "date_end",
+          "label": "LBL_REALIZATION_COMPLETION_DATE",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "duedate": {
+          "column": "duedate",
+          "label": "LBL_ACTUAL_COMPLETION_DATE",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "shownerid": {
+          "column": "shownerid",
+          "label": "Share with users",
+          "uitype": 120,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "description": {
+          "column": "description",
+          "label": "Description",
+          "uitype": 300,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "attention": {
+          "column": "attention",
+          "label": "Attention",
+          "uitype": 300,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": false,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "ssingleorders_no": {
+          "column": "ssingleorders_no",
+          "label": "Numer zamówienia",
+          "uitype": 4,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": false,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "sum_total": {
+          "column": "sum_total",
+          "label": "FL_TOTAL_PRICE",
+          "uitype": 317,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "sum_marginp": {
+          "column": "sum_marginp",
+          "label": "FL_MARGINP",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "sum_margin": {
+          "column": "sum_margin",
+          "label": "FL_MARGIN",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "sum_gross": {
+          "column": "sum_gross",
+          "label": "FL_SUM_GROSS",
+          "uitype": 317,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "sum_discount": {
+          "column": "sum_discount",
+          "label": "FL_SUM_DISCOUNT",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "istorageaddressid": {
+          "column": "istorageaddressid",
+          "label": "FL_STORAGE",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "payment_methods": {
+          "column": "ssingleorders_method_payments",
+          "label": "FL_PAYMENTS_METHOD",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "contactid": {
+          "column": "contactid",
+          "label": "FL_CONTACT",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "buildingnumberb": {
+          "column": "buildingnumberb",
+          "label": "Building number",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "localnumberb": {
+          "column": "localnumberb",
+          "label": "Local number",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel8b": {
+          "column": "addresslevel8b",
+          "label": "AddressLevel8",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel7b": {
+          "column": "addresslevel7b",
+          "label": "AddressLevel7",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel5b": {
+          "column": "addresslevel5b",
+          "label": "AddressLevel5",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel2b": {
+          "column": "addresslevel2b",
+          "label": "AddressLevel2",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel1b": {
+          "column": "addresslevel1b",
+          "label": "AddressLevel1",
+          "uitype": 35,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "parent_id": {
+          "column": "parent_id",
+          "label": "FL_PARENT_SSINGLEORDERS",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "inquires_account": {
+          "column": "inquires_account",
+          "label": "Kontrahent",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "inquiry_qty": {
+          "column": "inquiry_qty",
+          "label": "Ilość zamówień",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "inquire_date": {
+          "column": "inquire_date",
+          "label": "Data zamówienia",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "inquiry_lead": {
+          "column": "inquiry_lead",
+          "label": "Lead powiązany",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "lead_zainteresowanie": {
+          "column": "lead_zainteresowanie",
+          "label": "Zainteresowanie",
+          "uitype": 33,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "inquiry_payment_date": {
+          "column": "inquiry_payment_date",
+          "label": "Data płatności",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "inquiry_other_persons": {
+          "column": "inquiry_other_persons",
+          "label": "Dodatkowe osoby",
+          "uitype": 321,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "offer_payment": {
+          "column": "offer_payment",
+          "label": "Termin płatności",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "inquiry_campaign": {
+          "column": "inquiry_campaign",
+          "label": "Źródło pochodzenia ",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "inquiry_lead_date": {
+          "column": "inquiry_lead_date",
+          "label": "Data powstania leada",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "inquiry_opportunity_date": {
+          "column": "inquiry_opportunity_date",
+          "label": "Data powstania szansy",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "inquiry_offer_date": {
+          "column": "inquiry_offer_date",
+          "label": "Data powstania oferty",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        }
+      }
+    },
+    "Partners": {
+      "table": "partners",
+      "fields": {
+        "subject": {
+          "column": "subject",
+          "label": "LBL_SUBJECT",
+          "uitype": 2,
+          "required": false,
+          "readonly": false,
+          "type": "text"
+        },
+        "vat_id": {
+          "column": "vat_id",
+          "label": "LBL_VAT_ID",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "shownerid": {
+          "column": "shownerid",
+          "label": "Share with users",
+          "uitype": 120,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "partners_no": {
+          "column": "partners_no",
+          "label": "LBL_NUMBER",
+          "uitype": 4,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": false,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": false,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "addresslevel1a": {
+          "column": "addresslevel1a",
+          "label": "AddressLevel1",
+          "uitype": 35,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel2a": {
+          "column": "addresslevel2a",
+          "label": "AddressLevel2",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel3a": {
+          "column": "addresslevel3a",
+          "label": "AddressLevel3",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel4a": {
+          "column": "addresslevel4a",
+          "label": "AddressLevel4",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel5a": {
+          "column": "addresslevel5a",
+          "label": "AddressLevel5",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel6a": {
+          "column": "addresslevel6a",
+          "label": "AddressLevel6",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel7a": {
+          "column": "addresslevel7a",
+          "label": "AddressLevel7",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel8a": {
+          "column": "addresslevel8a",
+          "label": "AddressLevel8",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "buildingnumbera": {
+          "column": "buildingnumbera",
+          "label": "Building number",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "localnumbera": {
+          "column": "localnumbera",
+          "label": "Local number",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "poboxa": {
+          "column": "poboxa",
+          "label": "Po Box",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "description": {
+          "column": "description",
+          "label": "Description",
+          "uitype": 300,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "sum_time": {
+          "column": "sum_time",
+          "label": "FL_TOTAL_TIME_H",
+          "uitype": 8,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "email": {
+          "column": "email",
+          "label": "Email",
+          "uitype": 13,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "crmactivity": {
+          "column": "crmactivity",
+          "label": "LBL_CRMACTIVITY",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "active": {
+          "column": "active",
+          "label": "FL_ACTIVE",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "category": {
+          "column": "category",
+          "label": "FL_CATEGORY",
+          "uitype": 302,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "private": {
+          "column": "private",
+          "label": "FL_IS_PRIVATE",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "modifiedby": {
+          "column": "modifiedby",
+          "label": "Last Modified By",
+          "uitype": 52,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "created_user_id": {
+          "column": "smcreatorid",
+          "label": "Created By",
+          "uitype": 52,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "parentid": {
+          "column": "parentid",
+          "label": "FL_MEMBER_OF",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        }
+      }
+    },
+    "FInvoice": {
+      "table": "finvoice",
+      "fields": {
+        "subject": {
+          "column": "subject",
+          "label": "Opis faktury",
+          "uitype": 2,
+          "required": false,
+          "readonly": false,
+          "type": "text"
+        },
+        "paymentdate": {
+          "column": "paymentdate",
+          "label": "FL_PAYMENT_DATE",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "saledate": {
+          "column": "saledate",
+          "label": "FL_SALE_DATE",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "payment_methods": {
+          "column": "finvoice_formpayment",
+          "label": "FL_PAYMENTS_METHOD",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "number": {
+          "column": "number",
+          "label": "FL_NUMBER",
+          "uitype": 4,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": false,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": false,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "sum_total": {
+          "column": "sum_total",
+          "label": "FL_TOTAL",
+          "uitype": 317,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "sum_gross": {
+          "column": "sum_gross",
+          "label": "FL_GROSS",
+          "uitype": 317,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "finvoice_status": {
+          "column": "finvoice_status",
+          "label": "Status faktury",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "finvoice_type": {
+          "column": "finvoice_type",
+          "label": "FL_INVOICE_TYPE",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "shownerid": {
+          "column": "shownerid",
+          "label": "Share with users",
+          "uitype": 120,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "attention": {
+          "column": "attention",
+          "label": "Attention",
+          "uitype": 300,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "description": {
+          "column": "description",
+          "label": "Description",
+          "uitype": 300,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "issue_time": {
+          "column": "issue_time",
+          "label": "FL_ISSUE_TIME",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "ssalesprocessesid": {
+          "column": "ssalesprocessesid",
+          "label": "FL_OPPORTUNITY",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "created_user_id": {
+          "column": "smcreatorid",
+          "label": "Created By",
+          "uitype": 52,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel8b": {
+          "column": "addresslevel8b",
+          "label": "AddressLevel8",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "localnumberb": {
+          "column": "localnumberb",
+          "label": "Local number",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel5b": {
+          "column": "addresslevel5b",
+          "label": "AddressLevel5",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "buildingnumberb": {
+          "column": "buildingnumberb",
+          "label": "Building number",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel7b": {
+          "column": "addresslevel7b",
+          "label": "AddressLevel7",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel2b": {
+          "column": "addresslevel2b",
+          "label": "AddressLevel2",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel1b": {
+          "column": "addresslevel1b",
+          "label": "AddressLevel1",
+          "uitype": 35,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "payment_sum": {
+          "column": "payment_sum",
+          "label": "FL_PAYMENT_SUM",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "invoices_account": {
+          "column": "invoices_account",
+          "label": "Kontrahent",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "invoice_person": {
+          "column": "invoice_person",
+          "label": "Osoba kontaktowa",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "invoice_other_persons": {
+          "column": "invoice_other_persons",
+          "label": "Dodatkowe osoby",
+          "uitype": 321,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "invoice_campaign": {
+          "column": "invoice_campaign",
+          "label": "Źródło pochodzenia",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "lead_zainteresowanie": {
+          "column": "lead_zainteresowanie",
+          "label": "Zainteresowanie",
+          "uitype": 33,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "offer_payment": {
+          "column": "offer_payment",
+          "label": "Termin płatności",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "invoice_lead": {
+          "column": "invoice_lead",
+          "label": "Lead powiązany",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "invoice_offer": {
+          "column": "invoice_offer",
+          "label": "Oferta powiązana",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "invoice_inquire": {
+          "column": "invoice_inquire",
+          "label": "Zamówienie powiązane",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "invoice_lead_date": {
+          "column": "invoice_lead_date",
+          "label": "Data powstania leada",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "invoice_oppo_date": {
+          "column": "invoice_oppo_date",
+          "label": "Data powstania szansy",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "invoice_offer_date": {
+          "column": "invoice_offer_date",
+          "label": "Data powstania oferty",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "invoice_inquiry_date": {
+          "column": "invoice_inquiry_date",
+          "label": "Data powstania zamówienia",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "invoice_payment_status": {
+          "column": "invoice_payment_status",
+          "label": "Status płatności",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        }
+      }
+    },
+    "FCorectingInvoice": {
+      "table": "fcorectinginvoice",
+      "fields": {
+        "subject": {
+          "column": "subject",
+          "label": "FL_SUBJECT",
+          "uitype": 2,
+          "required": false,
+          "readonly": false,
+          "type": "text"
+        },
+        "paymentdate": {
+          "column": "paymentdate",
+          "label": "FL_PAYMENT_DATE",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "saledate": {
+          "column": "saledate",
+          "label": "FL_SALE_DATE",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "payment_methods": {
+          "column": "fcorectinginvoice_formpayment",
+          "label": "FL_PAYMENTS_METHOD",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "fcorectinginvoice_status": {
+          "column": "fcorectinginvoice_status",
+          "label": "FL_STATUS",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "number": {
+          "column": "number",
+          "label": "FL_NUMBER",
+          "uitype": 4,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": false,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": false,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "sum_total": {
+          "column": "sum_total",
+          "label": "FL_TOTAL",
+          "uitype": 317,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "sum_gross": {
+          "column": "sum_gross",
+          "label": "FL_GROSS",
+          "uitype": 317,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "localnumbera": {
+          "column": "localnumbera",
+          "label": "Local number",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "buildingnumbera": {
+          "column": "buildingnumbera",
+          "label": "Building number",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel8a": {
+          "column": "addresslevel8a",
+          "label": "AddressLevel8",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel7a": {
+          "column": "addresslevel7a",
+          "label": "AddressLevel7",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel5a": {
+          "column": "addresslevel5a",
+          "label": "AddressLevel5",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel2a": {
+          "column": "addresslevel2a",
+          "label": "AddressLevel2",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "addresslevel1a": {
+          "column": "addresslevel1a",
+          "label": "AddressLevel1",
+          "uitype": 35,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "finvoiceid": {
+          "column": "finvoiceid",
+          "label": "FL_INVOICE",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "externalcomment": {
+          "column": "externalcomment",
+          "label": "FL_EXTERNAL_COMMENT",
+          "uitype": 21,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "internalcomment": {
+          "column": "internalcomment",
+          "label": "FL_INTERNAL_COMMENT",
+          "uitype": 21,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "created_user_id": {
+          "column": "smcreatorid",
+          "label": "Created By",
+          "uitype": 52,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "company_name_a": {
+          "column": "company_name_a",
+          "label": "FL_COMPANY_NAME",
+          "uitype": 1,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "first_name_a": {
+          "column": "first_name_a",
+          "label": "First Name",
+          "uitype": 1,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "last_name_a": {
+          "column": "last_name_a",
+          "label": "Last Name",
+          "uitype": 1,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "vat_id_a": {
+          "column": "vat_id_a",
+          "label": "Vat ID",
+          "uitype": 1,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "issue_time": {
+          "column": "issue_time",
+          "label": "FL_ISSUE_TIME",
+          "uitype": 5,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "invoice_account": {
+          "column": "invoice_account",
+          "label": "Kontrahent",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        }
+      }
+    },
+    "EmailTemplates": {
+      "table": "emailtemplates",
+      "fields": {
+        "name": {
+          "column": "name",
+          "label": "FL_NAME",
+          "uitype": 2,
+          "required": false,
+          "readonly": false,
+          "type": "text"
+        },
+        "number": {
+          "column": "number",
+          "label": "FL_NUMBER",
+          "uitype": 4,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": false,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": false,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "created_user_id": {
+          "column": "smcreatorid",
+          "label": "Created By",
+          "uitype": 52,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "shownerid": {
+          "column": "shownerid",
+          "label": "Share with users",
+          "uitype": 120,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "private": {
+          "column": "private",
+          "label": "FL_IS_PRIVATE",
+          "uitype": 56,
+          "required": false,
+          "readonly": false,
+          "type": "boolean"
+        },
+        "email_template_type": {
+          "column": "email_template_type",
+          "label": "FL_TYPE",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "module_name": {
+          "column": "module",
+          "label": "FL_MODULE",
+          "uitype": 301,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "subject": {
+          "column": "subject",
+          "label": "FL_SUBJECT",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "content": {
+          "column": "content",
+          "label": "FL_CONTENT",
+          "uitype": 300,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "email_template_priority": {
+          "column": "email_template_priority",
+          "label": "FL_SMTP_PRIORITY",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "smtp_id": {
+          "column": "smtp_id",
+          "label": "SMTP",
+          "uitype": 316,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "sys_name": {
+          "column": "sys_name",
+          "label": "FL_SYS_NAME",
+          "uitype": 1,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        }
+      }
+    },
+    "RecycleBin": {
+      "table": "recyclebin",
+      "fields": {}
+    },
+    "Occurrences": {
+      "table": "occurrences",
+      "fields": {
+        "topic": {
+          "column": "topic",
+          "label": "FL_TOPIC",
+          "uitype": 2,
+          "required": false,
+          "readonly": false,
+          "type": "text"
+        },
+        "occurrences_status": {
+          "column": "occurrences_status",
+          "label": "FL_STATUS",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "occurrences_type": {
+          "column": "occurrences_type",
+          "label": "FL_TYPE",
+          "uitype": 15,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "date_start": {
+          "column": "date_start",
+          "label": "FL_DATE_START",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "date_end": {
+          "column": "date_end",
+          "label": "FL_DATE_END",
+          "uitype": 5,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "shownerid": {
+          "column": "shownerid",
+          "label": "Share with users",
+          "uitype": 120,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "occurrences_rating": {
+          "column": "occurrences_rating",
+          "label": "FL_RATING",
+          "uitype": 16,
+          "required": false,
+          "readonly": false,
+          "type": "picklist"
+        },
+        "locationid": {
+          "column": "locationid",
+          "label": "FL_LOCATION",
+          "uitype": 10,
+          "required": false,
+          "readonly": false,
+          "type": "relation"
+        },
+        "participants": {
+          "column": "participants",
+          "label": "FL_NUMBER_OF_PARTICIPANTS",
+          "uitype": 7,
+          "required": false,
+          "readonly": false,
+          "type": "number"
+        },
+        "description": {
+          "column": "description",
+          "label": "FL_DESCRIPTION",
+          "uitype": 300,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "attention": {
+          "column": "attention",
+          "label": "FL_ATTENTION",
+          "uitype": 300,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "number": {
+          "column": "number",
+          "label": "FL_NUMBER",
+          "uitype": 4,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": false,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": false,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "created_user_id": {
+          "column": "smcreatorid",
+          "label": "Created By",
+          "uitype": 52,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "meeting_url": {
+          "column": "meeting_url",
+          "label": "FL_MEETING_URL",
+          "uitype": 326,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        }
+      }
+    },
+    "ReportTemplate": {
+      "table": "reporttemplate",
+      "fields": {
+        "name": {
+          "column": "name",
+          "label": "LBL_NAME",
+          "uitype": 2,
+          "required": false,
+          "readonly": false,
+          "type": "text"
+        },
+        "description": {
+          "column": "description",
+          "label": "LBL_DESCRIPTION",
+          "uitype": 1,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "number": {
+          "column": "number",
+          "label": "FL_NUMBER",
+          "uitype": 4,
+          "required": false,
+          "readonly": false,
+          "type": "string"
+        },
+        "assigned_user_id": {
+          "column": "smownerid",
+          "label": "Assigned To",
+          "uitype": 53,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "createdtime": {
+          "column": "createdtime",
+          "label": "Created Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "modifiedtime": {
+          "column": "modifiedtime",
+          "label": "Modified Time",
+          "uitype": 70,
+          "required": true,
+          "readonly": false,
+          "type": "datetime"
+        },
+        "created_user_id": {
+          "column": "smcreatorid",
+          "label": "Created By",
+          "uitype": 52,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "modifiedby": {
+          "column": "modifiedby",
+          "label": "Last Modified By",
+          "uitype": 52,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        },
+        "shownerid": {
+          "column": "shownerid",
+          "label": "Share with users",
+          "uitype": 120,
+          "required": true,
+          "readonly": false,
+          "type": "string"
+        }
+      }
+    }
   }
 }
