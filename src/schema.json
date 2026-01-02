@@ -1,423 +1,215 @@
 {
-  "modules": {
-    "Leads": {
-      "tabid": 7,
-      "table": "vtiger_leaddetails",
-      "pk": "leadid",
-      "crmentity": true,
-      "description": "Potencjalni klienci przed konwersją na konto lub kontakt. Moduł obsługuje leady marketingowe, z możliwością konwersji do Accounts/Contacts/Opportunities.",
-      "relations": {
-        "Accounts": "lead_account",
-        "Contacts": "lead_contact",
-        "Campaigns": "campaignid"  
-      },
-      "fields": [
-        "leadid",
-        "lead_firstname",
-        "lead_lastname",
-        "company",
-        "email",
-        "phone",
-        "leadstatus",
-        "lead_stage",
-        "converted",
-        "leadsource",
-        "industry",
-        "annualrevenue",
-        "vat_id",
-        "lead_position",
-        "lead_decisionmaker",
-        "lead_linkedin",
-        "lead_zainteresowanie",
-        "description",
-        "assigned_user_id",
-        "createdtime",
-        "modifiedtime"
-      ],
-      "searchable_fields": [
-        "lead_firstname",
-        "lead_lastname",
-        "company",
-        "email",
-        "phone",
-        "vat_id"
-      ]
+  "Contacts": {
+    "table": "vtiger_contactdetails",
+    "pk": "contactid",
+    "fields": [
+      "contactid",
+      "contact_no",
+      "parentid",
+      "salutation",
+      "firstname",
+      "lastname",
+      "email",
+      "phone",
+      "mobile",
+      "reportsto",
+      "training",
+      "usertype",
+      "contacttype",
+      "otheremail",
+      "donotcall",
+      "emailoptout",
+      "imagename",
+      "isconvertedfromlead",
+      "verification",
+      "secondary_email",
+      "notifilanguage",
+      "contactstatus",
+      "dav_status",
+      "jobtitle",
+      "decision_maker",
+      "sum_time",
+      "phone_extra",
+      "mobile_extra",
+      "approvals",
+      "gender",
+      "api_contacts",
+      "lead_rodo_1",
+      "lead_rodo_2",
+      "lead_rodo_4",
+      "contacts_campaign",
+      "contact_linkedin",
+      "contact_account",
+      "photo_contact"
+    ],
+    "relations": {
+      "contactid": {
+        "module": "vtiger_crmentity",
+        "table": "vtiger_crmentity",
+        "pk": "crmid"
+      }
     },
-    "Accounts": {
-      "tabid": 6,
-      "table": "vtiger_account",
-      "pk": "accountid",
-      "crmentity": true,
-      "description": "Firmy/kontrahenci. Główny moduł do zarządzania relacjami biznesowymi z firmami.",
-      "relations": {
-        "Contacts": "parent_id",
-        "Leads": "accountid",
-        "Potentials": "related_to",
-        "Quotes": "account_id",
-        "SalesOrder": "account_id",
-        "Invoice": "account_id",
-        "Campaigns": "linktoaccountscontacts",
-        "Vendors": "vendor_id"  
-      },
-      "fields": [
-        "accountid",
-        "accountname",
-        "account_short_name",
-        "account_type",
-        "industry",
-        "phone",
-        "email1",
-        "email2",
-        "website",
-        "employees",
-        "annualrevenue",
-        "vat_id",
-        "accounts_status",
-        "legal_form",
-        "balance",
-        "payment_balance",
-        "creditlimit",
-        "account_linkedin",
-        "description",
-        "assigned_user_id",
-        "createdtime",
-        "modifiedtime"
-      ],
-      "searchable_fields": [
-        "accountname",
-        "account_short_name",
-        "vat_id",
-        "email1",
-        "phone",
-        "website"
-      ]
-    },
-    "Contacts": {
-      "tabid": 4,
-      "table": "vtiger_contactdetails",
-      "pk": "contactid",
-      "crmentity": true,
-      "description": "Osoby kontaktowe powiązane z firmami (Accounts). Obsługuje szczegóły osobowe i relacje.",
-      "relations": {
-        "Accounts": "parent_id",
-        "Leads": "contactid",
-        "Potentials": "contact_id",
-        "Quotes": "contact_id",
-        "SalesOrder": "contact_id",
-        "Invoice": "contact_id",
-        "Campaigns": "linktoaccountscontacts"
-      },
-      "fields": [
-        "contactid",
-        "firstname",
-        "lastname",
-        "email",
-        "phone",
-        "mobile",
-        "jobtitle",
-        "contactstatus",
-        "decision_maker",
-        "secondary_email",
-        "contact_linkedin",
-        "gender",
-        "description",
-        "assigned_user_id",
-        "createdtime",
-        "modifiedtime"
-      ],
-      "searchable_fields": [
-        "firstname",
-        "lastname",
-        "email",
-        "phone",
-        "mobile"
-      ]
-    },
-    "Potentials": {
-      "tabid": 2,
-      "table": "vtiger_potential",
-      "pk": "potentialid",
-      "crmentity": true,
-      "description": "Szanse sprzedaży (Opportunities). Śledzi potencjalne transakcje od leadu do zamknięcia.",
-      "relations": {
-        "Accounts": "related_to",
-        "Contacts": "contact_id",
-        "Quotes": "potential_id",
-        "SalesOrder": "potential_id",
-        "Campaigns": "campaignid"
-      },
-      "fields": [
-        "potentialid",
-        "potentialname",
-        "amount",
-        "sales_stage",
-        "closingdate",
-        "probability",
-        "related_to",
-        "forecast_amount",
-        "leadsource",
-        "nextstep",
-        "description",
-        "assigned_user_id",
-        "createdtime",
-        "modifiedtime"
-      ],
-      "searchable_fields": [
-        "potentialname",
-        "related_to",
-        "sales_stage"
-      ]
-    },
-    "Campaigns": {
-      "tabid": 26,
-      "table": "vtiger_campaign",
-      "pk": "campaignid",
-      "crmentity": true,
-      "description": "Kampanie marketingowe. Zarządza akcjami promocyjnymi, leadami i konwersjami.",
-      "relations": {
-        "Leads": "campaignid",
-        "Accounts": "campaignid",
-        "Contacts": "campaignid",
-        "Potentials": "campaignid"
-      },
-      "fields": [
-        "campaignid",
-        "campaignname",
-        "campaignstatus",
-        "campaigntype",
-        "targetaudience",
-        "budgetcost",
-        "actualcost",
-        "expectedrevenue",
-        "startdate",
-        "enddate",
-        "description",
-        "assigned_user_id",
-        "createdtime",
-        "modifiedtime"
-      ],
-      "searchable_fields": [
-        "campaignname",
-        "campaigntype",
-        "campaignstatus"
-      ]
-    },
-    "Quotes": {
-      "tabid": 20,
-      "table": "vtiger_quotes",
-      "pk": "quoteid",
-      "crmentity": true,
-      "description": "Oferty sprzedażowe. Generuje wyceny dla klientów.",
-      "relations": {
-        "Potentials": "potential_id",
-        "Accounts": "account_id",
-        "Contacts": "contact_id",
-        "SalesOrder": "quote_id",
-        "Inventory": "inventory_items"
-      },
-      "fields": [
-        "quoteid",
-        "subject",
-        "quotestage",
-        "validtill",
-        "total",
-        "subtotal",
-        "discount_percent",
-        "description",
-        "assigned_user_id",
-        "createdtime",
-        "modifiedtime"
-      ],
-      "searchable_fields": [
-        "subject",
-        "quotestage"
-      ]
-    },
-    "SalesOrder": {
-      "tabid": 22,
-      "table": "vtiger_salesorder",
-      "pk": "salesorderid",
-      "crmentity": true,
-      "description": "Zamówienia sprzedaży. Przetwarza zamówienia od klientów.",
-      "relations": {
-        "Quotes": "quote_id",
-        "Potentials": "potential_id",
-        "Accounts": "account_id",
-        "Contacts": "contact_id",
-        "Invoice": "salesorder_id"
-      },
-      "fields": [
-        "salesorderid",
-        "subject",
-        "sostatus",
-        "duedate",
-        "total",
-        "subtotal",
-        "discount_percent",
-        "description",
-        "assigned_user_id",
-        "createdtime",
-        "modifiedtime"
-      ],
-      "searchable_fields": [
-        "subject",
-        "sostatus"
-      ]
-    },
-    "Invoice": {
-      "tabid": 23,
-      "table": "vtiger_invoice",
-      "pk": "invoiceid",
-      "crmentity": true,
-      "description": "Faktury. Zarządza fakturowaniem i płatnościami.",
-      "relations": {
-        "SalesOrder": "salesorder_id",
-        "Accounts": "account_id",
-        "Contacts": "contact_id"
-      },
-      "fields": [
-        "invoiceid",
-        "subject",
-        "invoicestatus",
-        "invoicedate",
-        "total",
-        "subtotal",
-        "discount_percent",
-        "balance",
-        "payment_duration",
-        "description",
-        "assigned_user_id",
-        "createdtime",
-        "modifiedtime"
-      ],
-      "searchable_fields": [
-        "subject",
-        "invoicestatus"
-      ]
-    },
-    "HelpDesk": {
-      "tabid": 13,
-      "table": "vtiger_troubletickets",
-      "pk": "ticketid",
-      "crmentity": true,
-      "description": "Zgłoszenia serwisowe (Tickets). Obsługuje wsparcie klienta.",
-      "relations": {
-        "Accounts": "parent_id",
-        "Contacts": "contact_id",
-        "Products": "product_id"
-      },
-      "fields": [
-        "ticketid",
-        "ticket_no",
-        "ticket_title",
-        "ticketstatus",
-        "ticketpriorities",
-        "description",
-        "solution",
-        "assigned_user_id",
-        "createdtime",
-        "modifiedtime"
-      ],
-      "searchable_fields": [
-        "ticket_no",
-        "ticket_title",
-        "ticketstatus"
-      ]
-    },
-    "Products": {
-      "tabid": 14,
-      "table": "vtiger_products",
-      "pk": "productid",
-      "crmentity": true,
-      "description": "Produkty. Katalog produktów z cenami i szczegółami.",
-      "relations": {
-        "Vendors": "vendor_id",
-        "Quotes": "productid (inventory)",
-        "SalesOrder": "productid (inventory)",
-        "Invoice": "productid (inventory)"
-      },
-      "fields": [
-        "productid",
-        "productname",
-        "product_no",
-        "productcategory",
-        "unit_price",
-        "qtyinstock",
-        "description",
-        "assigned_user_id",
-        "createdtime",
-        "modifiedtime"
-      ],
-      "searchable_fields": [
-        "productname",
-        "product_no"
-      ]
-    },
-    "Vendors": {
-      "tabid": 18,
-      "table": "vtiger_vendor",
-      "pk": "vendorid",
-      "crmentity": true,
-      "description": "Dostawcy. Zarządza relacjami z vendorami.",
-      "relations": {
-        "Products": "vendor_id"
-      },
-      "fields": [
-        "vendorid",
-        "vendorname",
-        "email",
-        "phone",
-        "category",
-        "description",
-        "assigned_user_id",
-        "createdtime",
-        "modifiedtime"
-      ],
-      "searchable_fields": [
-        "vendorname",
-        "email"
-      ]
-    }
+    "searchFields": [
+      "firstname",
+      "lastname",
+      "email",
+      "phone",
+      "mobile"
+    ]
   },
-  "global_tables": {
-    "crmentity": {
-      "table": "vtiger_crmentity",
-      "pk": "crmid",
-      "description": "Centralna tabela dla wszystkich encji CRM (createdtime, modifiedtime, assigned_user_id, etc.)",
-      "fields": [
-        "crmid",
-        "smcreatorid",
-        "smownerid",
-        "modifiedby",
-        "setype",
-        "description",
-        "createdtime",
-        "modifiedtime",
-        "viewedtime",
-        "status",
-        "version",
-        "presence",
-        "deleted",
-        "was_read",
-        "private",
-        "state",
-        "searchlabel",
-        "label"
-      ]
+  "Leads": {
+    "table": "vtiger_leaddetails",
+    "pk": "leadid",
+    "fields": [
+      "leadid",
+      "lead_no",
+      "email",
+      "interest",
+      "firstname",
+      "salutation",
+      "lastname",
+      "company",
+      "annualrevenue",
+      "industry",
+      "campaign",
+      "leadstatus",
+      "leadsource",
+      "converted",
+      "licencekeystatus",
+      "space",
+      "comments",
+      "priority",
+      "demorequest",
+      "partnercontact",
+      "productversion",
+      "product",
+      "maildate",
+      "nextstepdate",
+      "fundingsituation",
+      "purpose",
+      "evaluationstatus",
+      "transferdate",
+      "revenuetype",
+      "noofemployees",
+      "secondaryemail",
+      "noapprovalcalls",
+      "noapprovalemails",
+      "vat_id",
+      "registration_number_1",
+      "registration_number_2",
+      "verification",
+      "subindustry",
+      "atenttion",
+      "leads_relation",
+      "legal_form",
+      "sum_time",
+      "active",
+      "lead_stage",
+      "lead_firstname",
+      "lead_lastname",
+      "lead_account",
+      "lead_contact",
+      "lead_campaign",
+      "lead_reason_reject",
+      "lead_linkedin",
+      "contact_rodo_1",
+      "contact_rodo2",
+      "lead_profilowanie",
+      "lead_zainteresowanie",
+      "lead_note",
+      "lead_date_creation",
+      "lead_days_count",
+      "lead_position",
+      "lead_decisionmaker",
+      "lead_nr",
+      "lead_iql_date",
+      "lead_mql_date",
+      "lead_sql_date",
+      "lead_opp_date",
+      "lead_inquire_date",
+      "lead_offer_date",
+      "lead_invoice_date",
+      "lead_iql_count",
+      "lead_mql_count",
+      "lead_sql_count"
+    ],
+    "relations": {
+      "leadid": {
+        "module": "vtiger_crmentity",
+        "table": "vtiger_crmentity",
+        "pk": "crmid"
+      }
     },
-    "custom_fields": {
-      "description": "Pola niestandardowe (CF) są przechowywane w tabelach jak vtiger_xxxxcf, gdzie xxxx to nazwa modułu (np. vtiger_leadscf)."
-    }
+    "searchFields": [
+      "lead_firstname",
+      "lead_lastname",
+      "email",
+      "company"
+    ]
   },
-  "relations_config": {
-    "description": "Relacje między modułami są obsługiwane przez pola referencyjne (np. uitype 10) lub tabele pośrednie jak vtiger_campaignaccountrel. Użyj a_yf_mapped_fields do mapowań konwersji (np. Leads -> Accounts).",
-    "mapped_fields_table": "a_yf_mapped_fields",
-    "mapped_config_table": "a_yf_mapped_config"
-  },
-  "search_guidelines": {
-    "general": "Do wyszukiwania używaj searchable_fields. Dołącz vtiger_crmentity dla metadanych (np. assigned_user_id, createdtime).",
-    "joins": "Łącz tabele modułu z vtiger_crmentity po crmid. Dla relacji używaj pól referencyjnych.",
-    "limits": "Ogranicz wyniki do 100 rekordów, chyba że określono inaczej.",
-    "security": "Uwzględnij smownerid dla kontroli dostępu użytkowników."
+  "Accounts": {
+    "table": "vtiger_account",
+    "pk": "accountid",
+    "fields": [
+      "accountid",
+      "account_no",
+      "accountname",
+      "parentid",
+      "account_type",
+      "industry",
+      "annualrevenue",
+      "siccode",
+      "phone",
+      "otherphone",
+      "email1",
+      "email2",
+      "website",
+      "fax",
+      "employees",
+      "emailoptout",
+      "isconvertedfromlead",
+      "vat_id",
+      "registration_number_1",
+      "registration_number_2",
+      "verification",
+      "no_approval",
+      "balance",
+      "payment_balance",
+      "legal_form",
+      "sum_time",
+      "inventorybalance",
+      "discount",
+      "creditlimit",
+      "products",
+      "services",
+      "last_invoice_date",
+      "accounts_status",
+      "phone_extra",
+      "fax_extra",
+      "otherphone_extra",
+      "pricebook_id",
+      "check_stock_levels",
+      "sum_open_orders",
+      "taxes",
+      "accounts_available_taxes",
+      "account_short_name",
+      "api_accounts",
+      "account_linkedin",
+      "logo_account"
+    ],
+    "relations": {
+      "accountid": {
+        "module": "vtiger_crmentity",
+        "table": "vtiger_crmentity",
+        "pk": "crmid"
+      }
+    },
+    "searchFields": [
+      "accountname",
+      "account_short_name",
+      "email1",
+      "phone",
+      "website"
+    ]
   }
 }
