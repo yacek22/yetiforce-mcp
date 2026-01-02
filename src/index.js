@@ -71,7 +71,7 @@ async function getStats(args = {}) {
   if (args.status) {
     // Mapowanie nazw kolumn statusów
     let statusCol = '';
-    if (args.module === 'leads') statusCol = 'lead_status';
+    if (args.module === 'leads') statusCol = 'lead_stage';
     if (args.module === 'contacts') statusCol = 'contactstatus';
     if (args.module === 'accounts') statusCol = 'accounts_status';
     if (args.module === 'opportunities') statusCol = 'ssalesprocesses_status';
