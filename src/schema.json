@@ -105,7 +105,76 @@
       }
     },
     "searchFields": [
-      "subject"
+      "subject",
+      "category"
+    ]
+  },
+  "Campaigns": {
+    "table": "vtiger_campaign",
+    "pk": "campaignid",
+    "fields": [
+      "campaignid",
+      "campaign_no",
+      "campaignname",
+      "campaigntype",
+      "campaignstatus",
+      "expectedrevenue",
+      "budgetcost",
+      "actualcost",
+      "expectedresponse",
+      "numsent",
+      "product_id",
+      "sponsor",
+      "targetaudience",
+      "targetsize",
+      "expectedresponsecount",
+      "expectedsalescount",
+      "expectedroi",
+      "actualresponsecount",
+      "actualsalescount",
+      "actualroi",
+      "closingdate",
+      "sum_time",
+      "campaign_start",
+      "capaign_cpl",
+      "capaign_costs",
+      "campaign_costs_ads",
+      "campaign_cost_imprint",
+      "campaign_costs_content",
+      "campaign_costs_influencers",
+      "campaign_costs_event",
+      "campaign_costs_mkt_team",
+      "campaign_costs_tools",
+      "campaign_costs_seosem",
+      "campaign_costs_research",
+      "campaign_costs_partnerships",
+      "campaign_costs_travel",
+      "campaign_costs_btl",
+      "campaign_costs_pr",
+      "campaign_costs_bonus",
+      "campaign_costs_other",
+      "campaign_costs_lawyer",
+      "campaign_costs_outsourcing",
+      "campaign_cpl_sql",
+      "campaign_cpl_opp",
+      "campaign_conv_opportunity",
+      "campaign_sql_count",
+      "campaign_reject_count"
+    ],
+    "relations": {
+      "campaignid": {
+        "module": "vtiger_crmentity",
+        "table": "vtiger_crmentity",
+        "pk": "crmid"
+      }
+    },
+    "searchFields": [
+      "campaignname",
+      "campaigntype",
+      "campaignstatus",
+      "expectedrevenue",
+      "budgetcost",
+      "actualcost"
     ]
   },
   "Leads": {
@@ -198,6 +267,52 @@
       "company"
     ]
   },
+  "Quotes": {
+    "table": "u_yf_squotes",
+    "pk": "squotesid",
+    "fields": [
+      "squotesid",
+      "squotes_no",
+      "subject",
+      "salesprocessid",
+      "scalculationsid",
+      "category",
+      "squotes_status",
+      "accountid",
+      "company",
+      "sum_time",
+      "sum_total",
+      "sum_marginp",
+      "sum_margin",
+      "sum_gross",
+      "sum_discount",
+      "valid_until",
+      "parent_id",
+      "offers_account",
+      "offer_lead",
+      "offer_contact",
+      "offer_date",
+      "offer_opp_date",
+      "offer_lead_date",
+      "lead_zainteresowanie",
+      "offer_campaign",
+      "offer_other_contacts",
+      "offers_qty",
+      "offer_payment",
+      "squotesid"
+    ],
+    "relations": {
+      "squotesid": {
+        "module": "vtiger_crmentity",
+        "table": "vtiger_crmentity",
+        "pk": "crmid"
+      }
+    },
+    "searchFields": [
+      "subject",
+      "company"
+    ]
+  },
   "Accounts": {
     "table": "vtiger_account",
     "pk": "accountid",
@@ -261,6 +376,57 @@
       "email1",
       "phone",
       "website"
+    ]
+  },
+  "Invoices": {
+    "table": "u_yf_finvoice",
+    "pk": "finvoiceid",
+    "fields": [
+      "finvoiceid",
+      "subject",
+      "number",
+      "paymentdate",
+      "saledate",
+      "accountid",
+      "finvoice_formpayment",
+      "sum_total",
+      "sum_gross",
+      "finvoice_status",
+      "finvoice_type",
+      "pscategory",
+      "issue_time",
+      "ssalesprocessesid",
+      "projectid",
+      "payment_status",
+      "payment_sum",
+      "invoices_account",
+      "invoice_person",
+      "invoice_other_persons",
+      "invoice_campaign",
+      "lead_zainteresowanie",
+      "offer_payment",
+      "invoice_lead",
+      "invoice_offer",
+      "invoice_inquire",
+      "invoice_lead_date",
+      "invoice_oppo_date",
+      "invoice_offer_date",
+      "invoice_inquiry_date",
+      "invoice_payment_status",
+      "finvoiceid"
+    ],
+    "relations": {
+      "finvoiceid": {
+        "module": "vtiger_crmentity",
+        "table": "vtiger_crmentity",
+        "pk": "crmid"
+      }
+    },
+    "searchFields": [
+      "subject",
+      "finvoice_status",
+      "sum_total",
+      "sum_gross"
     ]
   }
 }
