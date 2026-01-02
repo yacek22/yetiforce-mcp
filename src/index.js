@@ -49,19 +49,25 @@ async function getContacts(args = {}) {
       c.contact_linkedin,
       c.contact_account,
       c.gender,
+      a.accountname as account_name,
+      a.account_short_name,
+      a.website as account_website,
+      a.industry as account_industry,
+      a.vat_id as account_vat_id,
       e.createdtime,
       e.modifiedtime,
       e.description
     FROM vtiger_contactdetails c
     JOIN vtiger_crmentity e ON c.contactid = e.crmid
+    LEFT JOIN vtiger_account a ON c.contact_account = a.accountid
     WHERE e.deleted = 0
   `;
   
   const params = [];
   
   if (args.search) {
-    query += ` AND (c.lastname LIKE ? OR c.firstname LIKE ? OR c.email LIKE ? OR c.phone LIKE ?)`;
-    params.push(`%${args.search}%`, `%${args.search}%`, `%${args.search}%`, `%${args.search}%`);
+    query += ` AND (c.lastname LIKE ? OR c.firstname LIKE ? OR c.email LIKE ? OR c.phone LIKE ? OR a.accountname LIKE ?)`;
+    params.push(`%${args.search}%`, `%${args.search}%`, `%${args.search}%`, `%${args.search}%`, `%${args.search}%`);
   }
   
   if (args.status) {
@@ -143,7 +149,7 @@ async function getLeads(args = {}) {
       l.lead_firstname,
       l.lead_lastname,
       l.email,
-      l.company,
+      l.company as lead_company_name,
       l.leadstatus,
       l.lead_stage,
       l.leadsource,
@@ -158,19 +164,25 @@ async function getLeads(args = {}) {
       l.lead_decisionmaker,
       l.lead_linkedin,
       l.lead_zainteresowanie,
+      a.accountname as account_name,
+      a.account_short_name,
+      c.firstname as contact_firstname,
+      c.lastname as contact_lastname,
       e.createdtime,
       e.modifiedtime,
       e.description
     FROM vtiger_leaddetails l
     JOIN vtiger_crmentity e ON l.leadid = e.crmid
+    LEFT JOIN vtiger_account a ON l.lead_account = a.accountid
+    LEFT JOIN vtiger_contactdetails c ON l.lead_contact = c.contactid
     WHERE e.deleted = 0
   `;
   
   const params = [];
   
   if (args.search) {
-    query += ` AND (l.lead_firstname LIKE ? OR l.lead_lastname LIKE ? OR l.email LIKE ? OR l.company LIKE ?)`;
-    params.push(`%${args.search}%`, `%${args.search}%`, `%${args.search}%`, `%${args.search}%`);
+    query += ` AND (l.lead_firstname LIKE ? OR l.lead_lastname LIKE ? OR l.email LIKE ? OR l.company LIKE ? OR a.accountname LIKE ?)`;
+    params.push(`%${args.search}%`, `%${args.search}%`, `%${args.search}%`, `%${args.search}%`, `%${args.search}%`);
   }
   
   if (args.status) {
@@ -204,19 +216,24 @@ async function getOpportunities(args = {}) {
       p.sales_stage,
       p.closingdate,
       p.probability,
+      p.related_to,
+      a.accountname as account_name,
+      a.account_short_name,
+      a.vat_id as account_vat_id,
       e.createdtime,
       e.modifiedtime,
       e.description
     FROM vtiger_potential p
     JOIN vtiger_crmentity e ON p.potentialid = e.crmid
+    LEFT JOIN vtiger_account a ON p.related_to = a.accountid
     WHERE e.deleted = 0
   `;
   
   const params = [];
   
   if (args.search) {
-    query += ` AND p.potentialname LIKE ?`;
-    params.push(`%${args.search}%`);
+    query += ` AND (p.potentialname LIKE ? OR a.accountname LIKE ?)`;
+    params.push(`%${args.search}%`, `%${args.search}%`);
   }
   
   if (args.status) {
@@ -273,7 +290,6 @@ app.use((req, res, next) => {
   next();
 });
 
-
 // Strona główna
 app.get('/', (req, res) => {
   res.json({
@@ -282,12 +298,14 @@ app.get('/', (req, res) => {
     endpoints: {
       health: '/health',
       tools: '/tools',
+      search: '/search?query=Bondecki',
       contacts: '/contacts?limit=10&search=Jan',
       accounts: '/accounts?limit=10&search=Firma',
       leads: '/leads?limit=10&stage=SQL',
       opportunities: '/opportunities?limit=10&status=Prospecting',
       customQuery: 'POST /query with body: {"query": "SELECT ..."}'
     },
+    authentication: 'Bearer token required (except /health)',
     documentation: 'https://github.com/yacek22/yetiforce-mcp'
   });
 });
@@ -302,8 +320,13 @@ app.get('/tools', (req, res) => {
   res.json({
     tools: [
       {
+        name: 'search',
+        description: 'Globalne wyszukiwanie po wszystkich modułach',
+        parameters: ['query', 'limit']
+      },
+      {
         name: 'get_contacts',
-        description: 'Pobiera listę kontaktów z YetiForce CRM',
+        description: 'Pobiera listę kontaktów z YetiForce CRM (z nazwami firm)',
         parameters: ['limit', 'search', 'status', 'account']
       },
       {
@@ -313,12 +336,12 @@ app.get('/tools', (req, res) => {
       },
       {
         name: 'get_leads',
-        description: 'Pobiera listę leadów',
+        description: 'Pobiera listę leadów (z nazwami firm i kontaktów)',
         parameters: ['limit', 'search', 'status', 'stage', 'converted']
       },
       {
         name: 'get_opportunities',
-        description: 'Pobiera szanse sprzedaży',
+        description: 'Pobiera szanse sprzedaży (z nazwami firm)',
         parameters: ['limit', 'search', 'status', 'min_amount']
       },
       {
@@ -328,6 +351,129 @@ app.get('/tools', (req, res) => {
       }
     ]
   });
+});
+
+// Globalny endpoint wyszukiwania
+app.get('/search', async (req, res) => {
+  try {
+    const { query, limit = 20 } = req.query;
+    
+    if (!query) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Query parameter is required' 
+      });
+    }
+    
+    const searchLimit = parseInt(limit);
+    
+    const [contacts] = await pool.execute(`
+      SELECT 
+        'contact' as type,
+        c.contactid as id,
+        CONCAT(COALESCE(c.firstname, ''), ' ', COALESCE(c.lastname, '')) as name,
+        c.email,
+        c.phone,
+        c.mobile,
+        c.jobtitle as position,
+        a.accountname as company,
+        a.account_short_name as company_short,
+        c.contactstatus as status,
+        e.modifiedtime
+      FROM vtiger_contactdetails c
+      JOIN vtiger_crmentity e ON c.contactid = e.crmid
+      LEFT JOIN vtiger_account a ON c.contact_account = a.accountid
+      WHERE e.deleted = 0 
+        AND (c.firstname LIKE ? OR c.lastname LIKE ? OR c.email LIKE ? OR a.accountname LIKE ?)
+      ORDER BY e.modifiedtime DESC
+      LIMIT ?
+    `, [`%${query}%`, `%${query}%`, `%${query}%`, `%${query}%`, searchLimit]);
+    
+    const [accounts] = await pool.execute(`
+      SELECT 
+        'account' as type,
+        a.accountid as id,
+        a.accountname as name,
+        a.email1 as email,
+        a.phone,
+        NULL as mobile,
+        a.industry as position,
+        a.website as company,
+        a.account_short_name as company_short,
+        a.accounts_status as status,
+        e.modifiedtime
+      FROM vtiger_account a
+      JOIN vtiger_crmentity e ON a.accountid = e.crmid
+      WHERE e.deleted = 0 
+        AND (a.accountname LIKE ? OR a.account_short_name LIKE ? OR a.email1 LIKE ?)
+      ORDER BY e.modifiedtime DESC
+      LIMIT ?
+    `, [`%${query}%`, `%${query}%`, `%${query}%`, searchLimit]);
+    
+    const [leads] = await pool.execute(`
+      SELECT 
+        'lead' as type,
+        l.leadid as id,
+        CONCAT(COALESCE(l.lead_firstname, ''), ' ', COALESCE(l.lead_lastname, '')) as name,
+        l.email,
+        NULL as phone,
+        NULL as mobile,
+        l.lead_position as position,
+        COALESCE(a.accountname, l.company) as company,
+        a.account_short_name as company_short,
+        l.leadstatus as status,
+        e.modifiedtime
+      FROM vtiger_leaddetails l
+      JOIN vtiger_crmentity e ON l.leadid = e.crmid
+      LEFT JOIN vtiger_account a ON l.lead_account = a.accountid
+      WHERE e.deleted = 0 
+        AND (l.lead_firstname LIKE ? OR l.lead_lastname LIKE ? OR l.email LIKE ? OR l.company LIKE ? OR a.accountname LIKE ?)
+      ORDER BY e.modifiedtime DESC
+      LIMIT ?
+    `, [`%${query}%`, `%${query}%`, `%${query}%`, `%${query}%`, `%${query}%`, searchLimit]);
+    
+    const [opportunities] = await pool.execute(`
+      SELECT 
+        'opportunity' as type,
+        p.potentialid as id,
+        p.potentialname as name,
+        NULL as email,
+        NULL as phone,
+        NULL as mobile,
+        CONCAT(p.amount, ' PLN') as position,
+        a.accountname as company,
+        a.account_short_name as company_short,
+        p.sales_stage as status,
+        e.modifiedtime
+      FROM vtiger_potential p
+      JOIN vtiger_crmentity e ON p.potentialid = e.crmid
+      LEFT JOIN vtiger_account a ON p.related_to = a.accountid
+      WHERE e.deleted = 0 
+        AND (p.potentialname LIKE ? OR a.accountname LIKE ?)
+      ORDER BY e.modifiedtime DESC
+      LIMIT ?
+    `, [`%${query}%`, `%${query}%`, searchLimit]);
+    
+    const results = [...contacts, ...accounts, ...leads, ...opportunities];
+    
+    // Sortuj po dacie modyfikacji
+    results.sort((a, b) => new Date(b.modifiedtime) - new Date(a.modifiedtime));
+    
+    res.json({ 
+      success: true, 
+      query: query,
+      data: results.slice(0, searchLimit), 
+      count: results.length,
+      types: {
+        contacts: contacts.length,
+        accounts: accounts.length,
+        leads: leads.length,
+        opportunities: opportunities.length
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 // Endpoint dla kontaktów
