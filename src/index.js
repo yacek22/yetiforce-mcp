@@ -30,7 +30,8 @@ async function testConnection() {
   }
 }
 
-// Funkcje pomocnicze do zapytań
+// --- FUNKCJE POMOCNICZE ---
+
 async function getContacts(args = {}) {
   let query = `
     SELECT 
@@ -207,43 +208,54 @@ async function getLeads(args = {}) {
   return rows;
 }
 
+// --- POPRAWIONA FUNKCJA SZANS SPRZEDAŻY ---
 async function getOpportunities(args = {}) {
+  // Używamy tabeli u_yf_ssalesprocesses zgodnie z Yetiforce schema
   let query = `
     SELECT 
-      p.potentialid,
-      p.potentialname,
-      p.amount,
-      p.sales_stage,
-      p.closingdate,
+      p.ssalesprocessesid as id,
+      p.ssalesprocesses_no as number,
+      p.subject,
+      p.estimated as amount,
+      p.ssalesprocesses_status as status,
+      p.estimated_date as closingdate,
       p.probability,
-      p.related_to,
+      p.opportunity_company as account_id,
       a.accountname as account_name,
       a.account_short_name,
       a.vat_id as account_vat_id,
       e.createdtime,
       e.modifiedtime,
       e.description
-    FROM vtiger_potential p
-    JOIN vtiger_crmentity e ON p.potentialid = e.crmid
-    LEFT JOIN vtiger_account a ON p.related_to = a.accountid
+    FROM u_yf_ssalesprocesses p
+    JOIN vtiger_crmentity e ON p.ssalesprocessesid = e.crmid
+    LEFT JOIN vtiger_account a ON p.opportunity_company = a.accountid
     WHERE e.deleted = 0
   `;
   
   const params = [];
   
   if (args.search) {
-    query += ` AND (p.potentialname LIKE ? OR a.accountname LIKE ?)`;
-    params.push(`%${args.search}%`, `%${args.search}%`);
+    query += ` AND (p.subject LIKE ? OR a.accountname LIKE ? OR p.ssalesprocesses_no LIKE ?)`;
+    params.push(`%${args.search}%`, `%${args.search}%`, `%${args.search}%`);
   }
   
+  // Mapowanie starego parametru status na nową kolumnę
   if (args.status) {
-    query += ` AND p.sales_stage = ?`;
+    query += ` AND p.ssalesprocesses_status = ?`;
     params.push(args.status);
   }
   
+  // Mapowanie starego amount na estimated
   if (args.min_amount) {
-    query += ` AND p.amount >= ?`;
+    query += ` AND p.estimated >= ?`;
     params.push(parseFloat(args.min_amount));
+  }
+
+  // Obsługa relacji z firmą
+  if (args.opportunity_company) {
+    query += ` AND p.opportunity_company = ?`;
+    params.push(args.opportunity_company);
   }
   
   query += ` ORDER BY e.modifiedtime DESC LIMIT ?`;
@@ -262,7 +274,7 @@ async function executeCustomQuery(query) {
   return rows;
 }
 
-// Express HTTP API
+// --- KONFIGURACJA API EXPRESS ---
 const app = express();
 app.use(express.json());
 
@@ -294,7 +306,7 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
   res.json({
     name: 'YetiForce MCP API',
-    version: '1.0.0',
+    version: '1.0.1 (Fixed Tables)',
     endpoints: {
       health: '/health',
       tools: '/tools',
@@ -303,6 +315,7 @@ app.get('/', (req, res) => {
       accounts: '/accounts?limit=10&search=Firma',
       leads: '/leads?limit=10&stage=SQL',
       opportunities: '/opportunities?limit=10&status=Prospecting',
+      ssalesprocesses: '/ssalesprocesses (Alias dla opportunities)',
       customQuery: 'POST /query with body: {"query": "SELECT ..."}'
     },
     authentication: 'Bearer token required (except /health)',
@@ -341,8 +354,8 @@ app.get('/tools', (req, res) => {
       },
       {
         name: 'get_opportunities',
-        description: 'Pobiera szanse sprzedaży (z nazwami firm)',
-        parameters: ['limit', 'search', 'status', 'min_amount']
+        description: 'Pobiera szanse sprzedaży (z nazwami firm) - Tabela SSalesProcesses',
+        parameters: ['limit', 'search', 'status', 'min_amount', 'opportunity_company']
       },
       {
         name: 'execute_query',
@@ -358,12 +371,9 @@ app.get('/search', async (req, res) => {
   try {
     const { query, limit = 20 } = req.query;
     
-    if (!query) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Query parameter is required' 
-      });
-    }
+    // Jeśli query jest puste, obsługujemy to jako "pobierz wszystko" (z limitem)
+    // lub zwracamy błąd jeśli wolisz restrykcję
+    const searchQuery = query || '';
     
     const searchLimit = parseInt(limit);
     
@@ -387,7 +397,7 @@ app.get('/search', async (req, res) => {
         AND (c.firstname LIKE ? OR c.lastname LIKE ? OR c.email LIKE ? OR a.accountname LIKE ?)
       ORDER BY e.modifiedtime DESC
       LIMIT ?
-    `, [`%${query}%`, `%${query}%`, `%${query}%`, `%${query}%`, searchLimit]);
+    `, [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`, searchLimit]);
     
     const [accounts] = await pool.execute(`
       SELECT 
@@ -408,7 +418,7 @@ app.get('/search', async (req, res) => {
         AND (a.accountname LIKE ? OR a.account_short_name LIKE ? OR a.email1 LIKE ?)
       ORDER BY e.modifiedtime DESC
       LIMIT ?
-    `, [`%${query}%`, `%${query}%`, `%${query}%`, searchLimit]);
+    `, [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`, searchLimit]);
     
     const [leads] = await pool.execute(`
       SELECT 
@@ -430,29 +440,30 @@ app.get('/search', async (req, res) => {
         AND (l.lead_firstname LIKE ? OR l.lead_lastname LIKE ? OR l.email LIKE ? OR l.company LIKE ? OR a.accountname LIKE ?)
       ORDER BY e.modifiedtime DESC
       LIMIT ?
-    `, [`%${query}%`, `%${query}%`, `%${query}%`, `%${query}%`, `%${query}%`, searchLimit]);
+    `, [`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`, searchLimit]);
     
+    // POPRAWIONE ZAPYTANIE DLA SZANS (SSalesProcesses)
     const [opportunities] = await pool.execute(`
       SELECT 
         'opportunity' as type,
-        p.potentialid as id,
-        p.potentialname as name,
+        p.ssalesprocessesid as id,
+        p.subject as name,
         NULL as email,
         NULL as phone,
         NULL as mobile,
-        CONCAT(p.amount, ' PLN') as position,
+        CONCAT(p.estimated, ' PLN') as position,
         a.accountname as company,
         a.account_short_name as company_short,
-        p.sales_stage as status,
+        p.ssalesprocesses_status as status,
         e.modifiedtime
-      FROM vtiger_potential p
-      JOIN vtiger_crmentity e ON p.potentialid = e.crmid
-      LEFT JOIN vtiger_account a ON p.related_to = a.accountid
+      FROM u_yf_ssalesprocesses p
+      JOIN vtiger_crmentity e ON p.ssalesprocessesid = e.crmid
+      LEFT JOIN vtiger_account a ON p.opportunity_company = a.accountid
       WHERE e.deleted = 0 
-        AND (p.potentialname LIKE ? OR a.accountname LIKE ?)
+        AND (p.subject LIKE ? OR a.accountname LIKE ?)
       ORDER BY e.modifiedtime DESC
       LIMIT ?
-    `, [`%${query}%`, `%${query}%`, searchLimit]);
+    `, [`%${searchQuery}%`, `%${searchQuery}%`, searchLimit]);
     
     const results = [...contacts, ...accounts, ...leads, ...opportunities];
     
@@ -461,7 +472,7 @@ app.get('/search', async (req, res) => {
     
     res.json({ 
       success: true, 
-      query: query,
+      query: searchQuery,
       data: results.slice(0, searchLimit), 
       count: results.length,
       types: {
@@ -506,8 +517,28 @@ app.get('/leads', async (req, res) => {
   }
 });
 
-// Endpoint dla szans sprzedaży
+// Endpoint dla szans sprzedaży (główny)
 app.get('/opportunities', async (req, res) => {
+  try {
+    const results = await getOpportunities(req.query);
+    res.json({ success: true, data: results, count: results.length });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ALIAS: Endpoint dla /ssalesprocesses (dla agentów używających nazw tabel)
+app.get('/ssalesprocesses', async (req, res) => {
+  try {
+    const results = await getOpportunities(req.query);
+    res.json({ success: true, data: results, count: results.length });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ALIAS: Endpoint dla /SSalesProcesses (dla agentów PascalCase)
+app.get('/SSalesProcesses', async (req, res) => {
   try {
     const results = await getOpportunities(req.query);
     res.json({ success: true, data: results, count: results.length });
