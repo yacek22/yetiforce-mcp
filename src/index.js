@@ -115,7 +115,7 @@ async function getContacts(args = {}) {
 
 async function getAccounts(args = {}) {
   let query = `
-    SELECT a.accountid, a.accountname, a.email1, a.phone, a.vat_id, e.createdtime
+    SELECT a.accountid, a.accountname, a.email1, a.phone, a.vat_id, e.createdtime, website, industry, account_type, smownerid, accounts_status, account_short_name
     FROM vtiger_account a
     JOIN vtiger_crmentity e ON a.accountid = e.crmid
     WHERE e.deleted = 0
