@@ -29,23 +29,24 @@ async function testConnection() {
   }
 }
 
-// --- NOWY ENDPOINT ANALITYCZNY (SQL ROBI MATEMATYKĘ) ---
+// --- ENDPOINT ANALITYCZNY /STATS ---
 async function getStats(args = {}) {
   const moduleMap = {
     'leads': { table: 'vtiger_leaddetails', pk: 'leadid', amount: null },
     'contacts': { table: 'vtiger_contactdetails', pk: 'contactid', amount: null },
-    'accounts': { table: 'vtiger_account', pk: 'accountid', amount: 'annualrevenue' }, // Przykładowo revenue
-    'opportunities': { table: 'u_yf_ssalesprocesses', pk: 'ssalesprocessesid', amount: 'estimated' }
+    'accounts': { table: 'vtiger_account', pk: 'accountid', amount: 'annualrevenue' }, 
+    'opportunities': { table: 'u_yf_ssalesprocesses', pk: 'ssalesprocessesid', amount: 'estimated' },
+    'invoices': { table: 'u_yf_finvoice', pk: 'finvoiceid', amount: 'sum_gross' }
   };
 
   const mod = moduleMap[args.module];
   if (!mod) {
-    throw new Error(`Nieznany moduł do statystyk: ${args.module}. Dostępne: leads, contacts, accounts, opportunities`);
+    throw new Error(`Nieznany moduł do statystyk: ${args.module}`);
   }
 
   let selectClause = `COUNT(*) as count`;
   if (mod.amount) {
-    selectClause += `, SUM(t.${mod.amount}) as total_amount, AVG(t.${mod.amount}) as avg_amount`;
+    selectClause += `, SUM(t.${mod.amount}) as total_amount`;
   }
 
   let query = `
@@ -57,7 +58,7 @@ async function getStats(args = {}) {
 
   const params = [];
 
-  // Filtrowanie dat
+  // 1. Filtrowanie dat
   if (args.date_from) {
     query += ` AND e.createdtime >= ?`;
     params.push(args.date_from + ' 00:00:00');
@@ -67,14 +68,14 @@ async function getStats(args = {}) {
     params.push(args.date_to + ' 23:59:59');
   }
 
-  // Filtrowanie statusów (uniwersalne)
+  // 2. Filtrowanie statusów
   if (args.status) {
-    // Mapowanie nazw kolumn statusów
     let statusCol = '';
-    if (args.module === 'leads') statusCol = 'lead_stage';
+    if (args.module === 'leads') statusCol = 'leadstatus';
     if (args.module === 'contacts') statusCol = 'contactstatus';
     if (args.module === 'accounts') statusCol = 'accounts_status';
     if (args.module === 'opportunities') statusCol = 'ssalesprocesses_status';
+    if (args.module === 'invoices') statusCol = 'finvoice_status';
     
     if (statusCol) {
       query += ` AND t.${statusCol} = ?`;
@@ -82,11 +83,25 @@ async function getStats(args = {}) {
     }
   }
 
+  // 3. Filtrowanie po Firmie (RELACJE) - NOWOŚĆ
+  if (args.account_id) {
+    let accCol = '';
+    if (args.module === 'leads') accCol = 'lead_account';
+    if (args.module === 'contacts') accCol = 'contact_account';
+    if (args.module === 'opportunities') accCol = 'opportunity_company';
+    if (args.module === 'invoices') accCol = 'invoices_account';
+
+    if (accCol) {
+      query += ` AND t.${accCol} = ?`;
+      params.push(args.account_id);
+    }
+  }
+
   const [rows] = await pool.execute(query, params);
-  return rows[0]; // Zwraca { count: 123, total_amount: 50000 }
+  return rows[0];
 }
 
-// --- STANDARDOWE FUNKCJE POBIERANIA LISTY ---
+// --- FUNKCJE LISTUJĄCE ---
 
 async function getContacts(args = {}) {
   let query = `
@@ -104,6 +119,8 @@ async function getContacts(args = {}) {
   }
   if (args.date_from) { query += ` AND e.createdtime >= ?`; params.push(args.date_from + ' 00:00:00'); }
   if (args.date_to) { query += ` AND e.createdtime <= ?`; params.push(args.date_to + ' 23:59:59'); }
+  
+  // Relacja
   if (args.account) { query += ` AND c.contact_account = ?`; params.push(args.account); }
 
   query += ` ORDER BY e.createdtime DESC LIMIT ?`;
@@ -114,8 +131,10 @@ async function getContacts(args = {}) {
 }
 
 async function getAccounts(args = {}) {
+  // Usunąłem website i inne pola, które mogły powodować błędy w Twojej wersji bazy
   let query = `
-    SELECT a.accountid, a.accountname, a.email1, a.phone, a.vat_id, e.createdtime, website, industry, account_type, smownerid, accounts_status, account_short_name
+    SELECT a.accountid, a.accountname, a.email1, a.phone, a.vat_id, e.createdtime, 
+           a.accounts_status, a.account_short_name
     FROM vtiger_account a
     JOIN vtiger_crmentity e ON a.accountid = e.crmid
     WHERE e.deleted = 0
@@ -137,10 +156,14 @@ async function getAccounts(args = {}) {
 }
 
 async function getLeads(args = {}) {
+  // POPRAWIONA RELACJA: Dodano LEFT JOIN do accounts i warunek lead_account
   let query = `
-    SELECT l.leadid, l.lead_firstname, l.lead_lastname, l.email, l.company, l.leadstatus, e.createdtime, smownerid, lead_stage, lead_account, lead_contact, lead_campaign, lead_zainteresowanie, lead_note
+    SELECT l.leadid, l.lead_firstname, l.lead_lastname, l.email, l.company, l.leadstatus, 
+           e.createdtime, l.lead_stage, l.lead_account,
+           a.accountname as connected_account_name
     FROM vtiger_leaddetails l
     JOIN vtiger_crmentity e ON l.leadid = e.crmid
+    LEFT JOIN vtiger_account a ON l.lead_account = a.accountid
     WHERE e.deleted = 0
   `;
   const params = [];
@@ -152,6 +175,12 @@ async function getLeads(args = {}) {
   if (args.date_from) { query += ` AND e.createdtime >= ?`; params.push(args.date_from + ' 00:00:00'); }
   if (args.date_to) { query += ` AND e.createdtime <= ?`; params.push(args.date_to + ' 23:59:59'); }
   if (args.status) { query += ` AND l.leadstatus = ?`; params.push(args.status); }
+  
+  // NOWOŚĆ: Filtrowanie po przypisanej firmie (ID)
+  if (args.lead_account) { 
+    query += ` AND l.lead_account = ?`; 
+    params.push(args.lead_account); 
+  }
 
   query += ` ORDER BY e.createdtime DESC LIMIT ?`;
   params.push(parseInt(args.limit) || 100);
@@ -204,11 +233,11 @@ app.get('/tools', (req, res) => {
     tools: [
       {
         name: 'get_stats',
-        description: 'ZWRACA DOKŁADNE LICZBY I SUMY. Używaj zawsze do pytań "ile", "suma", "wartość".',
-        parameters: ['module (leads, opportunities, accounts)', 'date_from', 'date_to', 'status']
+        description: 'ZWRACA LICZBY I SUMY.',
+        parameters: ['module', 'date_from', 'date_to', 'status', 'account_id']
       },
-      { name: 'get_leads', parameters: ['limit', 'search', 'date_from', 'date_to'] },
-      { name: 'get_opportunities', parameters: ['limit', 'search', 'date_from', 'date_to', 'status'] },
+      { name: 'get_leads', parameters: ['limit', 'search', 'date_from', 'date_to', 'lead_account'] },
+      { name: 'get_opportunities', parameters: ['limit', 'search', 'date_from', 'date_to', 'status', 'opportunity_company'] },
       { name: 'get_accounts', parameters: ['limit', 'search'] },
       { name: 'get_contacts', parameters: ['limit', 'search', 'account'] }
     ]
@@ -228,15 +257,11 @@ app.get('/contacts', async (req, res) => res.json({ success: true, data: await g
 app.get('/accounts', async (req, res) => res.json({ success: true, data: await getAccounts(req.query) }));
 app.get('/leads', async (req, res) => res.json({ success: true, data: await getLeads(req.query) }));
 app.get('/opportunities', async (req, res) => res.json({ success: true, data: await getOpportunities(req.query) }));
-app.get('/ssalesprocesses', async (req, res) => res.json({ success: true, data: await getOpportunities(req.query) })); // Alias
-app.get('/SSalesProcesses', async (req, res) => res.json({ success: true, data: await getOpportunities(req.query) })); // Alias
+app.get('/invoices', async (req, res) => res.json({ success: true, data: [] })); // Placeholder
 
-// Dodaj funkcję search jeśli potrzebna (uproszczona)
-app.get('/search', async (req, res) => {
-    // ... (możesz zostawić starą implementację search lub pominąć, stats jest kluczowe)
-    res.json({ success: false, error: "Use specific modules or /stats" }); 
-});
-
+// Aliasy
+app.get('/ssalesprocesses', async (req, res) => res.json({ success: true, data: await getOpportunities(req.query) }));
+app.get('/SSalesProcesses', async (req, res) => res.json({ success: true, data: await getOpportunities(req.query) }));
 
 const PORT = process.env.MCP_PORT || 3000;
 testConnection().then(() => {
