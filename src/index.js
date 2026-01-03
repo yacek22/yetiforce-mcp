@@ -29,7 +29,7 @@ async function testConnection() {
   }
 }
 
-// --- ZAAWANSOWANY ENDPOINT ANALITYCZNY (/STATS) ---
+// --- ENDPOINT ANALITYCZNY /STATS ---
 async function getStats(args = {}) {
   const moduleMap = {
     'leads': { table: 'vtiger_leaddetails', pk: 'leadid', amount: null },
@@ -68,7 +68,7 @@ async function getStats(args = {}) {
     params.push(args.date_to + ' 23:59:59');
   }
 
-  // 2. Filtrowanie Statusów
+  // 2. Filtrowanie Statusów (Istniejące)
   if (args.status) {
     let statusCol = '';
     if (args.module === 'leads') statusCol = 'leadstatus';
@@ -83,9 +83,13 @@ async function getStats(args = {}) {
     }
   }
 
-  // 3. Filtrowanie Relacyjne (DLA ANALITYKI)
-  
-  // A. Relacja z Firmą (Account)
+  // 3. Filtrowanie Etapów (NOWOŚĆ - dla Leadów SQL/MQL)
+  if (args.stage && args.module === 'leads') {
+    query += ` AND t.lead_stage = ?`;
+    params.push(args.stage);
+  }
+
+  // 4. Relacje
   if (args.account_id) {
     let accCol = '';
     if (args.module === 'leads') accCol = 'lead_account';
@@ -99,12 +103,10 @@ async function getStats(args = {}) {
     }
   }
 
-  // B. Relacja z Kontaktem (Contact)
   if (args.contact_id) {
     let conCol = '';
     if (args.module === 'leads') conCol = 'lead_contact';
     if (args.module === 'opportunities') conCol = 'opportunity_contact';
-    if (args.module === 'invoices') conCol = 'invoice_person';
     
     if (conCol) {
       query += ` AND t.${conCol} = ?`;
@@ -116,7 +118,7 @@ async function getStats(args = {}) {
   return rows[0];
 }
 
-// --- FUNKCJE LISTUJĄCE (PEŁNE RELACJE) ---
+// --- FUNKCJE LISTUJĄCE ---
 
 async function getContacts(args = {}) {
   let query = `
@@ -138,12 +140,7 @@ async function getContacts(args = {}) {
   }
   if (args.date_from) { query += ` AND e.createdtime >= ?`; params.push(args.date_from + ' 00:00:00'); }
   if (args.date_to) { query += ` AND e.createdtime <= ?`; params.push(args.date_to + ' 23:59:59'); }
-  
-  // Relacja: Kontakty w danej Firmie
-  if (args.account) { 
-    query += ` AND c.contact_account = ?`; 
-    params.push(args.account); 
-  }
+  if (args.account) { query += ` AND c.contact_account = ?`; params.push(args.account); }
 
   query += ` ORDER BY e.createdtime DESC LIMIT ?`;
   params.push(parseInt(args.limit) || 100);
@@ -178,7 +175,6 @@ async function getAccounts(args = {}) {
 }
 
 async function getLeads(args = {}) {
-  // RELACJE: Firma (lead_account) ORAZ Kontakt (lead_contact)
   let query = `
     SELECT 
       l.leadid, l.lead_firstname, l.lead_lastname, l.email, l.company, 
@@ -200,18 +196,15 @@ async function getLeads(args = {}) {
   }
   if (args.date_from) { query += ` AND e.createdtime >= ?`; params.push(args.date_from + ' 00:00:00'); }
   if (args.date_to) { query += ` AND e.createdtime <= ?`; params.push(args.date_to + ' 23:59:59'); }
+  
+  // Filtr STATUS (np. New, Contacted)
   if (args.status) { query += ` AND l.leadstatus = ?`; params.push(args.status); }
   
-  // FILTR: Firma
-  if (args.lead_account) { 
-    query += ` AND l.lead_account = ?`; 
-    params.push(args.lead_account); 
-  }
-  // FILTR: Kontakt (NOWOŚĆ)
-  if (args.lead_contact) { 
-    query += ` AND l.lead_contact = ?`; 
-    params.push(args.lead_contact); 
-  }
+  // Filtr ETAP (np. SQL, MQL) - NOWOŚĆ
+  if (args.stage) { query += ` AND l.lead_stage = ?`; params.push(args.stage); }
+  
+  if (args.lead_account) { query += ` AND l.lead_account = ?`; params.push(args.lead_account); }
+  if (args.lead_contact) { query += ` AND l.lead_contact = ?`; params.push(args.lead_contact); }
 
   query += ` ORDER BY e.createdtime DESC LIMIT ?`;
   params.push(parseInt(args.limit) || 100);
@@ -221,105 +214,10 @@ async function getLeads(args = {}) {
 }
 
 async function getOpportunities(args = {}) {
-  // RELACJE: Firma (opportunity_company) ORAZ Kontakt (opportunity_contact)
   let query = `
     SELECT 
       p.ssalesprocessesid as id, p.subject, p.estimated as amount, 
       p.ssalesprocesses_status as status, p.probability,
       e.createdtime,
       a.accountname as connected_account_name,
-      CONCAT(c.firstname, ' ', c.lastname) as connected_contact_name
-    FROM u_yf_ssalesprocesses p
-    JOIN vtiger_crmentity e ON p.ssalesprocessesid = e.crmid
-    LEFT JOIN vtiger_account a ON p.opportunity_company = a.accountid
-    LEFT JOIN vtiger_contactdetails c ON p.opportunity_contact = c.contactid
-    WHERE e.deleted = 0
-  `;
-  const params = [];
-
-  if (args.search) { query += ` AND (p.subject LIKE ? OR a.accountname LIKE ?)`; params.push(`%${args.search}%`, `%${args.search}%`); }
-  if (args.date_from) { query += ` AND e.createdtime >= ?`; params.push(args.date_from + ' 00:00:00'); }
-  if (args.date_to) { query += ` AND e.createdtime <= ?`; params.push(args.date_to + ' 23:59:59'); }
-  if (args.status) { query += ` AND p.ssalesprocesses_status = ?`; params.push(args.status); }
-  if (args.min_amount) { query += ` AND p.estimated >= ?`; params.push(parseFloat(args.min_amount)); }
-  
-  // FILTR: Firma
-  if (args.opportunity_company) { 
-    query += ` AND p.opportunity_company = ?`; 
-    params.push(args.opportunity_company); 
-  }
-  // FILTR: Kontakt (NOWOŚĆ)
-  if (args.opportunity_contact) { 
-    query += ` AND p.opportunity_contact = ?`; 
-    params.push(args.opportunity_contact); 
-  }
-
-  query += ` ORDER BY e.createdtime DESC LIMIT ?`;
-  params.push(parseInt(args.limit) || 100);
-  
-  const [rows] = await pool.execute(query, params);
-  return rows;
-}
-
-// --- API EXPRESS ---
-const app = express();
-app.use(express.json());
-const AUTH_TOKEN = process.env.API_TOKEN;
-
-app.use((req, res, next) => {
-  if (req.path === '/health') return next();
-  const authHeader = req.headers['authorization'];
-  if (!authHeader || authHeader.split(' ')[1] !== AUTH_TOKEN) {
-    return res.status(403).json({ error: 'Invalid token' });
-  }
-  next();
-});
-
-// DEFINICJA NARZĘDZI (Zaktualizowana o nowe parametry)
-app.get('/tools', (req, res) => {
-  res.json({
-    tools: [
-      {
-        name: 'get_stats',
-        description: 'ZWRACA LICZBY I SUMY. Obsługa relacji.',
-        parameters: ['module', 'date_from', 'date_to', 'status', 'account_id', 'contact_id']
-      },
-      { 
-        name: 'get_leads', 
-        description: 'Pobierz leady (filtrowanie po firmie/kontakcie)',
-        parameters: ['limit', 'search', 'date_from', 'date_to', 'lead_account', 'lead_contact'] 
-      },
-      { 
-        name: 'get_opportunities', 
-        description: 'Pobierz szanse (filtrowanie po firmie/kontakcie)',
-        parameters: ['limit', 'search', 'date_from', 'date_to', 'status', 'opportunity_company', 'opportunity_contact'] 
-      },
-      { name: 'get_accounts', parameters: ['limit', 'search'] },
-      { name: 'get_contacts', parameters: ['limit', 'search', 'account'] }
-    ]
-  });
-});
-
-app.get('/stats', async (req, res) => {
-  try {
-    const result = await getStats(req.query);
-    res.json({ success: true, data: result });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-app.get('/contacts', async (req, res) => res.json({ success: true, data: await getContacts(req.query) }));
-app.get('/accounts', async (req, res) => res.json({ success: true, data: await getAccounts(req.query) }));
-app.get('/leads', async (req, res) => res.json({ success: true, data: await getLeads(req.query) }));
-app.get('/opportunities', async (req, res) => res.json({ success: true, data: await getOpportunities(req.query) }));
-app.get('/invoices', async (req, res) => res.json({ success: true, data: [] }));
-
-// Aliasy
-app.get('/ssalesprocesses', async (req, res) => res.json({ success: true, data: await getOpportunities(req.query) }));
-app.get('/SSalesProcesses', async (req, res) => res.json({ success: true, data: await getOpportunities(req.query) }));
-
-const PORT = process.env.MCP_PORT || 3000;
-testConnection().then(() => {
-  app.listen(PORT, '0.0.0.0', () => console.log(`🚀 YetiForce Stats API running on ${PORT}`));
-});
+      CONCAT(c.firstname, ' ', c.la
