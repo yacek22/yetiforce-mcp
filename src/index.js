@@ -256,7 +256,7 @@ async function describeModule(args = {}) {
   );
 
   const [entityRows] = await pool.execute(
-    `SELECT tablename, entityidfield, entityidcolumn, fieldname AS label_field, fieldtable AS label_table
+    `SELECT tablename, entityidfield, entityidcolumn, fieldname AS label_field
      FROM vtiger_entityname
      WHERE tabid = ?`,
     [tabid]
