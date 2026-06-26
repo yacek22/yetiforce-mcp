@@ -297,26 +297,70 @@ async function queryModule(args = {}) {
   );
   const idColumn = pkRows.length ? pkRows[0].COLUMN_NAME : entityRows[0].entityidcolumn;
 
-  // Whitelist kolumn dla tego modułu wyciągnięta z metadanych CRM (nie od użytkownika) -
-  // bezpieczne do interpolacji w SQL, bo nie pochodzi z wejścia z zewnątrz.
-  const [validRows] = await pool.execute(
-    `SELECT DISTINCT columnname FROM vtiger_field WHERE tabid = ? AND tablename = ?`,
-    [tabid, primaryTable]
+  // WAŻNE: pola modułu bywają rozsiane po WIELU tabelach (np. dla Accounts adres jest
+  // w osobnej tabeli vtiger_accountaddress, nie w głównej vtiger_account). Pobieramy
+  // wszystkie tabele/kolumny związane z tym modułem z metadanych CRM i dołączamy
+  // (LEFT JOIN) każdą dodatkową tabelę po jej własnym kluczu głównym - dzięki temu
+  // żadne pole (adres, branża, typ kontrahenta itd.) nie jest niewidoczne.
+  const [allFieldRows] = await pool.execute(
+    `SELECT DISTINCT tablename, columnname FROM vtiger_field WHERE tabid = ?`,
+    [tabid]
   );
-  const validCols = new Set(validRows.map(r => r.columnname));
 
-  let fieldsToSelect = Array.isArray(args.fields) ? args.fields.filter(f => validCols.has(f)) : [];
+  const colMap = new Map(); // columnname -> { alias, tablename }
+  const extraTables = new Map(); // tablename -> alias
+
+  for (const row of allFieldRows) {
+    if (row.tablename === primaryTable) {
+      colMap.set(row.columnname, { alias: 't', tablename: primaryTable });
+    } else if (row.tablename === 'vtiger_crmentity') {
+      colMap.set(row.columnname, { alias: 'e', tablename: 'vtiger_crmentity' });
+    } else {
+      if (!extraTables.has(row.tablename)) {
+        extraTables.set(row.tablename, `x${extraTables.size + 1}`);
+      }
+      colMap.set(row.columnname, { alias: extraTables.get(row.tablename), tablename: row.tablename });
+    }
+  }
+
+  let joinClauses = '';
+  for (const [tableName, alias] of extraTables) {
+    const [extraPkRows] = await pool.execute(
+      `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_KEY = 'PRI'`,
+      [tableName]
+    );
+    if (extraPkRows.length) {
+      joinClauses += ` LEFT JOIN ${tableName} ${alias} ON ${alias}.${extraPkRows[0].COLUMN_NAME} = t.${idColumn}`;
+    } else {
+      // brak wykrytego klucza głównego - usuwamy tę tabelę z dostępnych (nie da się bezpiecznie połączyć)
+      extraTables.delete(tableName);
+      for (const [col, info] of colMap) {
+        if (info.tablename === tableName) colMap.delete(col);
+      }
+    }
+  }
+
+  const aliasFor = (col) => (col === idColumn ? 't' : (colMap.get(col)?.alias || 't'));
+
+  let fieldsToSelect = Array.isArray(args.fields) ? args.fields.filter(f => f === idColumn || colMap.has(f)) : [];
   if (!fieldsToSelect.length) {
-    fieldsToSelect = Array.from(validCols).slice(0, 15);
+    // domyślnie tylko pola głównej tabeli (krótka, czytelna odpowiedź) - resztę (adresy,
+    // pola z tabel dodatkowych) trzeba wskazać explicite w "fields" po sprawdzeniu describe_module
+    fieldsToSelect = Array.from(colMap.entries())
+      .filter(([, info]) => info.alias === 't')
+      .map(([col]) => col)
+      .slice(0, 15);
   }
   if (!fieldsToSelect.includes(idColumn)) fieldsToSelect.unshift(idColumn);
 
-  const selectClause = fieldsToSelect.map(f => `t.${f}`).join(', ');
+  const selectClause = fieldsToSelect.map(f => `${aliasFor(f)}.${f} AS ${f}`).join(', ');
 
   let query = `
     SELECT ${selectClause}, e.createdtime
     FROM ${primaryTable} t
     JOIN vtiger_crmentity e ON t.${idColumn} = e.crmid
+    ${joinClauses}
     WHERE e.deleted = 0
   `;
   const params = [];
@@ -324,7 +368,7 @@ async function queryModule(args = {}) {
   if (args.search) {
     const textCols = fieldsToSelect.filter(f => f !== idColumn);
     if (textCols.length) {
-      query += ` AND (${textCols.map(f => `t.${f} LIKE ?`).join(' OR ')})`;
+      query += ` AND (${textCols.map(f => `${aliasFor(f)}.${f} LIKE ?`).join(' OR ')})`;
       textCols.forEach(() => params.push(`%${args.search}%`));
     }
   }
@@ -390,7 +434,7 @@ const TOOLS = [
   },
   {
     name: 'get_accounts',
-    description: 'Lista kontrahentów (firm) z YetiForce z możliwością filtrowania.',
+    description: 'Lista kontrahentów (firm) z YetiForce - tylko PODSTAWOWE pole (nazwa, e-mail, telefon, NIP, status). NIE zawiera adresu, branży, rodzaju kontrahenta, formy prawnej i innych pól dodatkowych - po nie sięgnij przez describe_module(module="Accounts") + query_module(module="Accounts", fields=[...]). NIE zakładaj że dana informacja nie istnieje w CRM tylko bo nie jest tutaj - zawsze sprawdź przez describe_module/query_module zanim odpowiesz że czegoś nie ma.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -438,7 +482,7 @@ const TOOLS = [
   },
   {
     name: 'describe_module',
-    description: 'Zwraca strukturę pól danego modułu YetiForce (nazwy kolumn, etykiety, tabelę, typ danych) - czytane na żywo z metadanych CRM. Użyj przed query_module, żeby sprawdzić jakie pola/kolumny są dostępne.',
+    description: 'Zwraca KOMPLETNĄ strukturę pól danego modułu YetiForce (nazwy kolumn, etykiety z UI, tabelę, typ danych) - czytane na żywo z metadanych CRM, włącznie z polami leżącymi w dodatkowych tabelach (np. adresy są w osobnej tabeli niż dane podstawowe firmy/kontaktu - to jest normalne i te pola SĄ dostępne przez query_module). ZAWSZE wywołaj to narzędzie zanim powiesz użytkownikowi że jakiegoś pola/informacji nie ma w CRM - dedykowane narzędzia (get_accounts, get_contacts itd.) pokazują tylko wąski podzbiór pól.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -449,12 +493,12 @@ const TOOLS = [
   },
   {
     name: 'query_module',
-    description: 'Generyczne pobieranie rekordów z DOWOLNEGO modułu YetiForce (nie tylko tych z dedykowanych narzędzi). Struktura tabel/kolumn jest odczytywana na żywo z metadanych CRM, więc działa nawet po zmianach w strukturze modułu.',
+    description: 'Generyczne pobieranie rekordów z DOWOLNEGO modułu i DOWOLNYCH pól YetiForce (nie tylko tych z dedykowanych narzędzi) - automatycznie łączy (JOIN) wszystkie tabele, w których fizycznie leżą pola tego modułu (np. adres firmy jest w innej tabeli niż jej nazwa/NIP - to narzędzie i tak je pobierze, podaj tylko nazwę kolumny z describe_module). Struktura jest odczytywana na żywo z metadanych CRM.',
     inputSchema: {
       type: 'object',
       properties: {
         module: { type: 'string', description: 'Techniczna nazwa modułu (z list_modules)' },
-        fields: { type: 'array', items: { type: 'string' }, description: 'Lista kolumn do pobrania (z describe_module). Jeśli puste - pobiera pierwsze ~15 kolumn modułu.' },
+        fields: { type: 'array', items: { type: 'string' }, description: 'Lista kolumn do pobrania (nazwy "columnname" z describe_module - mogą pochodzić z różnych tabel tego modułu, np. pola adresowe). Jeśli puste - pobiera pierwsze ~15 kolumn z głównej tabeli modułu (bez adresów/pól dodatkowych).' },
         search: { type: 'string', description: 'Szukaj tekstowo w wybranych kolumnach' },
         date_from: { type: 'string' },
         date_to: { type: 'string' },
