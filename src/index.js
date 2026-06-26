@@ -284,7 +284,15 @@ async function queryModule(args = {}) {
   );
   if (!entityRows.length) throw new Error(`Brak danych o tabeli głównej dla modułu: ${moduleName}`);
   const primaryTable = entityRows[0].tablename;
-  const idColumn = entityRows[0].entityidcolumn;
+
+  // entityidcolumn z vtiger_entityname bywa nieaktualne/błędne w niektórych instalacjach -
+  // sprawdzamy prawdziwy klucz główny tabeli w information_schema (źródło prawdy).
+  const [pkRows] = await pool.execute(
+    `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_KEY = 'PRI'`,
+    [primaryTable]
+  );
+  const idColumn = pkRows.length ? pkRows[0].COLUMN_NAME : entityRows[0].entityidcolumn;
 
   // Whitelist kolumn dla tego modułu wyciągnięta z metadanych CRM (nie od użytkownika) -
   // bezpieczne do interpolacji w SQL, bo nie pochodzi z wejścia z zewnątrz.
