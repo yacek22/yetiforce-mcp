@@ -144,20 +144,33 @@ async function getContacts(args = {}) {
 }
 
 async function getAccounts(args = {}) {
-  let query = `
-    SELECT a.accountid, a.accountname, a.email1, a.phone, a.vat_id, e.createdtime, a.accounts_status
-    FROM vtiger_account a
-    JOIN vtiger_crmentity e ON a.accountid = e.crmid
-    WHERE e.deleted = 0
-  `;
-  const params = [];
-  if (args.search) { query += ` AND (a.accountname LIKE ? OR a.vat_id LIKE ?)`; params.push(`%${args.search}%`, `%${args.search}%`); }
-  if (args.date_from) { query += ` AND e.createdtime >= ?`; params.push(args.date_from + ' 00:00:00'); }
-  if (args.date_to) { query += ` AND e.createdtime <= ?`; params.push(args.date_to + ' 23:59:59'); }
-  query += ` ORDER BY e.createdtime DESC LIMIT ?`;
-  params.push(parseInt(args.limit) || 100);
-  const [rows] = await pool.execute(query, params);
-  return rows;
+  // CUSTOM (Averica, 2026-06-26): zamiast osobnego, wąskiego SQL - delegujemy do
+  // queryModule() z wbudowanymi polami adresu/typu, żeby model nie musiał sam
+  // domyślać się że trzeba dodatkowo wywołać describe_module/query_module
+  // (modele tańsze niż Sonnet nie zawsze trzymały się tej wieloetapowej instrukcji
+  // i błędnie odpowiadały że "nie ma danych o mieście" mimo że dane istniały).
+  return queryModule({
+    module: 'Accounts',
+    fields: ['accountname', 'email1', 'phone', 'vat_id', 'account_type', 'forma_prawna', 'addresslevel5a', 'addresslevel2a'],
+    search: args.search,
+    date_from: args.date_from,
+    date_to: args.date_to,
+    limit: args.limit
+  });
+}
+
+async function getPartners(args = {}) {
+  // CUSTOM (Averica, 2026-06-26): nowe narzędzie - moduł Partnerzy nie miał wcześniej
+  // żadnej dedykowanej funkcji, model musiał ręcznie składać query_module, co często
+  // zawodziło (pomijał adres/miejscowość). Ten sam wzorzec co getAccounts.
+  return queryModule({
+    module: 'Partners',
+    fields: ['subject', 'mail_podstawowy_partner', 'tel_podstawowy_partner', 'vat_id', 'rodzaj_partner', 'forma_prawna', 'addresslevel5a', 'addresslevel2a'],
+    search: args.search,
+    date_from: args.date_from,
+    date_to: args.date_to,
+    limit: args.limit
+  });
 }
 
 async function getLeads(args = {}) {
@@ -434,12 +447,25 @@ const TOOLS = [
   },
   {
     name: 'get_accounts',
-    description: 'Lista kontrahentów (firm) z YetiForce - tylko PODSTAWOWE pole (nazwa, e-mail, telefon, NIP, status). NIE zawiera adresu, branży, rodzaju kontrahenta, formy prawnej i innych pól dodatkowych - po nie sięgnij przez describe_module(module="Accounts") + query_module(module="Accounts", fields=[...]). NIE zakładaj że dana informacja nie istnieje w CRM tylko bo nie jest tutaj - zawsze sprawdź przez describe_module/query_module zanim odpowiesz że czegoś nie ma.',
+    description: 'Lista kontrahentów (firm) z YetiForce - zwraca nazwę, e-mail, telefon, NIP, rodzaj kontrahenta, formę prawną ORAZ adres (pole "addresslevel5a" = miejscowość/miasto, "addresslevel2a" = województwo - te pola mają nieczytelne wewnętrzne nazwy, ale ZAWSZE pokazuj ich wartość, nigdy nie mów że danych nie ma bez sprawdzenia tego pola). Jeśli potrzebujesz jeszcze innych pól (branża, opis, social media) - użyj describe_module(module="Accounts") + query_module.',
     inputSchema: {
       type: 'object',
       properties: {
         limit: { type: 'number' },
-        search: { type: 'string', description: 'Szukaj w nazwie firmy lub NIP' },
+        search: { type: 'string', description: 'Szukaj w nazwie firmy, NIP lub miejscowości' },
+        date_from: { type: 'string' },
+        date_to: { type: 'string' }
+      }
+    }
+  },
+  {
+    name: 'get_partners',
+    description: 'Lista partnerów/dostawców (NIE klientów) z YetiForce - zwraca nazwę, e-mail, telefon, NIP, rodzaj partnera, formę prawną ORAZ adres (pole "addresslevel5a" = miejscowość/miasto, "addresslevel2a" = województwo - zawsze pokazuj ich wartość, nigdy nie mów że danych nie ma bez sprawdzenia). Użyj tego narzędzia (nie get_accounts) gdy pytanie dotyczy partnerów/dostawców/podwykonawców.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        limit: { type: 'number' },
+        search: { type: 'string', description: 'Szukaj w nazwie, NIP lub miejscowości' },
         date_from: { type: 'string' },
         date_to: { type: 'string' }
       }
@@ -514,6 +540,7 @@ const TOOL_HANDLERS = {
   get_leads: getLeads,
   get_contacts: getContacts,
   get_accounts: getAccounts,
+  get_partners: getPartners,
   get_opportunities: getOpportunities,
   get_invoices: getInvoices,
   list_modules: listModules,
