@@ -1,11 +1,13 @@
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 import express from 'express';
+import { randomUUID } from 'node:crypto';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import {
   ListToolsRequestSchema,
-  CallToolRequestSchema
+  CallToolRequestSchema,
+  isInitializeRequest
 } from '@modelcontextprotocol/sdk/types.js';
 
 dotenv.config();
@@ -508,7 +510,7 @@ function createMcpServer() {
   return server;
 }
 
-// --- HTTP / SSE TRANSPORT ---
+// --- HTTP TRANSPORT (Streamable HTTP - jedyny obsługiwany transport) ---
 
 const app = express();
 app.use(express.json());
@@ -517,8 +519,8 @@ const AUTH_TOKEN = process.env.API_TOKEN;
 
 function checkAuth(req, res) {
   // Akceptujemy token przez nagłówek Authorization: Bearer <token>
-  // ALBO przez parametr query ?token=<token> - przydatne dla klientów MCP
-  // (np. Claude Desktop), których UI nie pozwala ustawić własnych nagłówków.
+  // ALBO przez parametr query ?token=<token> - przydatne dla klientów MCP,
+  // których UI nie pozwala ustawić własnych nagłówków.
   const authHeader = req.headers['authorization'];
   const headerToken = authHeader ? authHeader.split(' ')[1] : null;
   const queryToken = req.query.token;
@@ -532,35 +534,65 @@ function checkAuth(req, res) {
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
-const transports = {};
+const streamableTransports = {};
 
-// Klient MCP łączy się tutaj (Server-Sent Events) - wymaga nagłówka Authorization: Bearer <token>
-app.get('/sse', async (req, res) => {
+app.post('/mcp', async (req, res) => {
   if (!checkAuth(req, res)) return;
 
-  const server = createMcpServer();
-  const transport = new SSEServerTransport('/messages', res);
-  transports[transport.sessionId] = transport;
+  const sessionId = req.headers['mcp-session-id'];
+  let transport;
 
-  res.on('close', () => {
-    delete transports[transport.sessionId];
-  });
+  if (sessionId && streamableTransports[sessionId]) {
+    transport = streamableTransports[sessionId];
+  } else if (!sessionId && isInitializeRequest(req.body)) {
+    transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: () => randomUUID(),
+      onsessioninitialized: (sid) => {
+        streamableTransports[sid] = transport;
+      }
+    });
 
-  await server.connect(transport);
-});
+    transport.onclose = () => {
+      if (transport.sessionId) delete streamableTransports[transport.sessionId];
+    };
 
-// Klient MCP wysyła tu wywołania narzędzi (JSON-RPC)
-app.post('/messages', async (req, res) => {
-  const sessionId = req.query.sessionId;
-  const transport = transports[sessionId];
-  if (!transport) {
-    res.status(400).send('Brak sesji dla podanego sessionId - połącz się najpierw z /sse');
+    const server = createMcpServer();
+    await server.connect(transport);
+  } else {
+    res.status(400).json({
+      jsonrpc: '2.0',
+      error: { code: -32000, message: 'Brak prawidłowej sesji (mcp-session-id) lub żądanie nie jest poprawnym initialize.' },
+      id: null
+    });
     return;
   }
-  await transport.handlePostMessage(req, res, req.body);
+
+  await transport.handleRequest(req, res, req.body);
+});
+
+app.get('/mcp', async (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const sessionId = req.headers['mcp-session-id'];
+  const transport = streamableTransports[sessionId];
+  if (!transport) {
+    res.status(400).send('Nieprawidłowa lub brakująca sesja (mcp-session-id)');
+    return;
+  }
+  await transport.handleRequest(req, res);
+});
+
+app.delete('/mcp', async (req, res) => {
+  if (!checkAuth(req, res)) return;
+  const sessionId = req.headers['mcp-session-id'];
+  const transport = streamableTransports[sessionId];
+  if (!transport) {
+    res.status(400).send('Nieprawidłowa lub brakująca sesja (mcp-session-id)');
+    return;
+  }
+  await transport.handleRequest(req, res);
 });
 
 const PORT = process.env.MCP_PORT || 3000;
 testConnection().then(() =>
-  app.listen(PORT, '0.0.0.0', () => console.log(`🚀 YetiForce MCP Server (SSE) running on ${PORT}`))
+  app.listen(PORT, '0.0.0.0', () => console.log(`🚀 YetiForce MCP Server (Streamable HTTP) running on ${PORT}`))
 );
