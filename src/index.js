@@ -370,8 +370,14 @@ app.use(express.json());
 const AUTH_TOKEN = process.env.API_TOKEN;
 
 function checkAuth(req, res) {
+  // Akceptujemy token przez nagłówek Authorization: Bearer <token>
+  // ALBO przez parametr query ?token=<token> - przydatne dla klientów MCP
+  // (np. Claude Desktop), których UI nie pozwala ustawić własnych nagłówków.
   const authHeader = req.headers['authorization'];
-  if (!authHeader || authHeader.split(' ')[1] !== AUTH_TOKEN) {
+  const headerToken = authHeader ? authHeader.split(' ')[1] : null;
+  const queryToken = req.query.token;
+
+  if (headerToken !== AUTH_TOKEN && queryToken !== AUTH_TOKEN) {
     res.status(403).json({ error: 'Invalid token' });
     return false;
   }
