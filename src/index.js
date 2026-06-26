@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import { randomUUID } from 'node:crypto';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import {
   ListToolsRequestSchema,
@@ -534,6 +535,36 @@ function checkAuth(req, res) {
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
+// --- SSE (starszy transport - wymagany np. przez węzeł "MCP Client Tool" w n8n) ---
+
+const sseTransports = {};
+
+app.get('/sse', async (req, res) => {
+  if (!checkAuth(req, res)) return;
+
+  const server = createMcpServer();
+  const transport = new SSEServerTransport('/messages', res);
+  sseTransports[transport.sessionId] = transport;
+
+  res.on('close', () => {
+    delete sseTransports[transport.sessionId];
+  });
+
+  await server.connect(transport);
+});
+
+app.post('/messages', async (req, res) => {
+  const sessionId = req.query.sessionId;
+  const transport = sseTransports[sessionId];
+  if (!transport) {
+    res.status(400).send('Brak sesji dla podanego sessionId - połącz się najpierw z /sse');
+    return;
+  }
+  await transport.handlePostMessage(req, res, req.body);
+});
+
+// --- STREAMABLE HTTP (nowszy transport - wymagany np. przez Claude/Mattermost) ---
+
 const streamableTransports = {};
 
 app.post('/mcp', async (req, res) => {
@@ -594,5 +625,5 @@ app.delete('/mcp', async (req, res) => {
 
 const PORT = process.env.MCP_PORT || 3000;
 testConnection().then(() =>
-  app.listen(PORT, '0.0.0.0', () => console.log(`🚀 YetiForce MCP Server (Streamable HTTP) running on ${PORT}`))
+  app.listen(PORT, '0.0.0.0', () => console.log(`🚀 YetiForce MCP Server (SSE + Streamable HTTP) running on ${PORT}`))
 );
