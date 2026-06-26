@@ -224,6 +224,109 @@ async function getInvoices(args = {}) {
   return rows;
 }
 
+// --- NARZĘDZIA "ŻYWEJ" STRUKTURY CRM ---
+// Czytają metadane bezpośrednio z tabel YetiForce (vtiger_tab, vtiger_field,
+// vtiger_entityname), więc zawsze odpowiadają aktualnej strukturze CRM -
+// nie trzeba niczego ręcznie aktualizować po dodaniu/zmianie pól lub modułów.
+
+async function listModules() {
+  const [rows] = await pool.execute(`
+    SELECT tabid, name, tablabel
+    FROM vtiger_tab
+    WHERE presence = 0
+    ORDER BY name
+  `);
+  return rows;
+}
+
+async function describeModule(args = {}) {
+  const moduleName = args.module;
+  if (!moduleName) throw new Error('Parametr "module" jest wymagany.');
+
+  const [tabRows] = await pool.execute(`SELECT tabid FROM vtiger_tab WHERE name = ?`, [moduleName]);
+  if (!tabRows.length) throw new Error(`Nie znaleziono modułu: ${moduleName}. Użyj list_modules, żeby zobaczyć dostępne nazwy.`);
+  const tabid = tabRows[0].tabid;
+
+  const [fieldRows] = await pool.execute(
+    `SELECT fieldname, fieldlabel, tablename, columnname, uitype, typeofdata
+     FROM vtiger_field
+     WHERE tabid = ? AND presence IN (0, 2)
+     ORDER BY block, sequence`,
+    [tabid]
+  );
+
+  const [entityRows] = await pool.execute(
+    `SELECT tablename, entityidfield, entityidcolumn, fieldname AS label_field, fieldtable AS label_table
+     FROM vtiger_entityname
+     WHERE tabid = ?`,
+    [tabid]
+  );
+
+  return {
+    module: moduleName,
+    tabid,
+    primary_entity: entityRows[0] || null,
+    fields: fieldRows
+  };
+}
+
+async function queryModule(args = {}) {
+  const moduleName = args.module;
+  if (!moduleName) throw new Error('Parametr "module" jest wymagany.');
+
+  const [tabRows] = await pool.execute(`SELECT tabid FROM vtiger_tab WHERE name = ?`, [moduleName]);
+  if (!tabRows.length) throw new Error(`Nie znaleziono modułu: ${moduleName}. Użyj list_modules, żeby zobaczyć dostępne nazwy.`);
+  const tabid = tabRows[0].tabid;
+
+  const [entityRows] = await pool.execute(
+    `SELECT tablename, entityidcolumn FROM vtiger_entityname WHERE tabid = ?`,
+    [tabid]
+  );
+  if (!entityRows.length) throw new Error(`Brak danych o tabeli głównej dla modułu: ${moduleName}`);
+  const primaryTable = entityRows[0].tablename;
+  const idColumn = entityRows[0].entityidcolumn;
+
+  // Whitelist kolumn dla tego modułu wyciągnięta z metadanych CRM (nie od użytkownika) -
+  // bezpieczne do interpolacji w SQL, bo nie pochodzi z wejścia z zewnątrz.
+  const [validRows] = await pool.execute(
+    `SELECT DISTINCT columnname FROM vtiger_field WHERE tabid = ? AND tablename = ?`,
+    [tabid, primaryTable]
+  );
+  const validCols = new Set(validRows.map(r => r.columnname));
+
+  let fieldsToSelect = Array.isArray(args.fields) ? args.fields.filter(f => validCols.has(f)) : [];
+  if (!fieldsToSelect.length) {
+    fieldsToSelect = Array.from(validCols).slice(0, 15);
+  }
+  if (!fieldsToSelect.includes(idColumn)) fieldsToSelect.unshift(idColumn);
+
+  const selectClause = fieldsToSelect.map(f => `t.${f}`).join(', ');
+
+  let query = `
+    SELECT ${selectClause}, e.createdtime
+    FROM ${primaryTable} t
+    JOIN vtiger_crmentity e ON t.${idColumn} = e.crmid
+    WHERE e.deleted = 0
+  `;
+  const params = [];
+
+  if (args.search) {
+    const textCols = fieldsToSelect.filter(f => f !== idColumn);
+    if (textCols.length) {
+      query += ` AND (${textCols.map(f => `t.${f} LIKE ?`).join(' OR ')})`;
+      textCols.forEach(() => params.push(`%${args.search}%`));
+    }
+  }
+  if (args.date_from) { query += ` AND e.createdtime >= ?`; params.push(args.date_from + ' 00:00:00'); }
+  if (args.date_to) { query += ` AND e.createdtime <= ?`; params.push(args.date_to + ' 23:59:59'); }
+
+  query += ` ORDER BY e.createdtime DESC LIMIT ?`;
+  params.push(parseInt(args.limit) || 50);
+
+  const [rows] = await pool.execute(query, params);
+  return rows;
+}
+
 // --- DEFINICJE NARZĘDZI MCP ---
 
 const TOOLS = [
@@ -316,6 +419,38 @@ const TOOLS = [
         status: { type: 'string' }
       }
     }
+  },
+  {
+    name: 'list_modules',
+    description: 'Zwraca listę WSZYSTKICH aktywnych modułów w tej instalacji YetiForce (czytane na żywo z bazy, więc obejmuje też moduły dodane/usunięte/zmienione później, niezależnie od pozostałych narzędzi w tym serwerze). Użyj tego, gdy potrzebujesz danych z modułu innego niż leads/contacts/accounts/opportunities/invoices.',
+    inputSchema: { type: 'object', properties: {} }
+  },
+  {
+    name: 'describe_module',
+    description: 'Zwraca strukturę pól danego modułu YetiForce (nazwy kolumn, etykiety, tabelę, typ danych) - czytane na żywo z metadanych CRM. Użyj przed query_module, żeby sprawdzić jakie pola/kolumny są dostępne.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        module: { type: 'string', description: 'Techniczna nazwa modułu (z list_modules), np. "Products", "HelpDesk"' }
+      },
+      required: ['module']
+    }
+  },
+  {
+    name: 'query_module',
+    description: 'Generyczne pobieranie rekordów z DOWOLNEGO modułu YetiForce (nie tylko tych z dedykowanych narzędzi). Struktura tabel/kolumn jest odczytywana na żywo z metadanych CRM, więc działa nawet po zmianach w strukturze modułu.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        module: { type: 'string', description: 'Techniczna nazwa modułu (z list_modules)' },
+        fields: { type: 'array', items: { type: 'string' }, description: 'Lista kolumn do pobrania (z describe_module). Jeśli puste - pobiera pierwsze ~15 kolumn modułu.' },
+        search: { type: 'string', description: 'Szukaj tekstowo w wybranych kolumnach' },
+        date_from: { type: 'string' },
+        date_to: { type: 'string' },
+        limit: { type: 'number', description: 'Domyślnie 50' }
+      },
+      required: ['module']
+    }
   }
 ];
 
@@ -325,7 +460,10 @@ const TOOL_HANDLERS = {
   get_contacts: getContacts,
   get_accounts: getAccounts,
   get_opportunities: getOpportunities,
-  get_invoices: getInvoices
+  get_invoices: getInvoices,
+  list_modules: listModules,
+  describe_module: describeModule,
+  query_module: queryModule
 };
 
 // --- SERWER MCP ---
