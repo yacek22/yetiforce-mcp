@@ -1,6 +1,12 @@
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 import express from 'express';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+import {
+  ListToolsRequestSchema,
+  CallToolRequestSchema
+} from '@modelcontextprotocol/sdk/types.js';
 
 dotenv.config();
 
@@ -28,12 +34,12 @@ async function testConnection() {
   }
 }
 
-// --- FUNKCJA STATYSTYK (NAPRAWIONE FILTROWANIE) ---
+// --- FUNKCJA STATYSTYK (bez zmian względem oryginału) ---
 async function getStats(args = {}) {
   const moduleMap = {
     'leads': { table: 'vtiger_leaddetails', pk: 'leadid', amount: null },
     'contacts': { table: 'vtiger_contactdetails', pk: 'contactid', amount: null },
-    'accounts': { table: 'vtiger_account', pk: 'accountid', amount: 'annualrevenue' }, 
+    'accounts': { table: 'vtiger_account', pk: 'accountid', amount: 'annualrevenue' },
     'opportunities': { table: 'u_yf_ssalesprocesses', pk: 'ssalesprocessesid', amount: 'estimated' },
     'invoices': { table: 'u_yf_finvoice', pk: 'finvoiceid', amount: 'sum_gross' }
   };
@@ -57,7 +63,6 @@ async function getStats(args = {}) {
 
   const params = [];
 
-  // 1. DATA
   if (args.date_from) {
     query += ` AND e.createdtime >= ?`;
     params.push(args.date_from + ' 00:00:00');
@@ -67,46 +72,39 @@ async function getStats(args = {}) {
     params.push(args.date_to + ' 23:59:59');
   }
 
-  // 2. STATUS vs STAGE (AUTOMATYCZNA DETEKCJA)
-  // Jeśli user pyta o SQL/MQL, to ZAWSZE jest to lead_stage, nawet jak agent nazwie to 'status'
   const isStageValue = (val) => ['SQL', 'MQL', 'IQL', 'SAL', 'Hot', 'Cold', 'Warm'].includes(val);
-  
-  // Pobieramy wartość z różnych możliwych parametrów
+
   const statusValue = args.status;
   const stageValue = args.stage || args.lead_stage;
 
   if (args.module === 'leads') {
-    // Specjalna logika dla Leadów: Stage vs Status
     if (stageValue) {
-        query += ` AND t.lead_stage = ?`;
-        params.push(stageValue);
+      query += ` AND t.lead_stage = ?`;
+      params.push(stageValue);
     } else if (statusValue) {
-        // Jeśli agent wysłał status=SQL, naprawiamy to w locie
-        if (isStageValue(statusValue)) {
-            query += ` AND t.lead_stage = ?`;
-            params.push(statusValue);
-        } else {
-            query += ` AND t.leadstatus = ?`;
-            params.push(statusValue);
-        }
+      if (isStageValue(statusValue)) {
+        query += ` AND t.lead_stage = ?`;
+        params.push(statusValue);
+      } else {
+        query += ` AND t.leadstatus = ?`;
+        params.push(statusValue);
+      }
     }
   } else {
-    // Inne moduły (standardowy status)
     if (statusValue) {
-        let statusCol = '';
-        if (args.module === 'contacts') statusCol = 'contactstatus';
-        if (args.module === 'accounts') statusCol = 'accounts_status';
-        if (args.module === 'opportunities') statusCol = 'ssalesprocesses_status';
-        if (args.module === 'invoices') statusCol = 'finvoice_status';
-        
-        if (statusCol) {
-            query += ` AND t.${statusCol} = ?`;
-            params.push(statusValue);
-        }
+      let statusCol = '';
+      if (args.module === 'contacts') statusCol = 'contactstatus';
+      if (args.module === 'accounts') statusCol = 'accounts_status';
+      if (args.module === 'opportunities') statusCol = 'ssalesprocesses_status';
+      if (args.module === 'invoices') statusCol = 'finvoice_status';
+
+      if (statusCol) {
+        query += ` AND t.${statusCol} = ?`;
+        params.push(statusValue);
+      }
     }
   }
 
-  // 3. RELACJE
   if (args.account_id || args.lead_account || args.opportunity_company) {
     const accId = args.account_id || args.lead_account || args.opportunity_company;
     let accCol = '';
@@ -121,7 +119,7 @@ async function getStats(args = {}) {
   return rows[0];
 }
 
-// --- FUNKCJE LISTUJĄCE ---
+// --- FUNKCJE LISTUJĄCE (bez zmian względem oryginału) ---
 
 async function getContacts(args = {}) {
   let query = `
@@ -172,13 +170,12 @@ async function getLeads(args = {}) {
   if (args.search) { query += ` AND (l.lead_firstname LIKE ? OR l.lead_lastname LIKE ? OR l.company LIKE ?)`; params.push(`%${args.search}%`, `%${args.search}%`, `%${args.search}%`); }
   if (args.date_from) { query += ` AND e.createdtime >= ?`; params.push(args.date_from + ' 00:00:00'); }
   if (args.date_to) { query += ` AND e.createdtime <= ?`; params.push(args.date_to + ' 23:59:59'); }
-  
-  // FIX: Status vs Stage również w listach
-  if (args.status) query += ` AND l.leadstatus = ?`, params.push(args.status);
-  if (args.stage) query += ` AND l.lead_stage = ?`, params.push(args.stage);
-  
-  if (args.lead_account) query += ` AND l.lead_account = ?`, params.push(args.lead_account);
-  if (args.lead_contact) query += ` AND l.lead_contact = ?`, params.push(args.lead_contact);
+
+  if (args.status) { query += ` AND l.leadstatus = ?`; params.push(args.status); }
+  if (args.stage) { query += ` AND l.lead_stage = ?`; params.push(args.stage); }
+
+  if (args.lead_account) { query += ` AND l.lead_account = ?`; params.push(args.lead_account); }
+  if (args.lead_contact) { query += ` AND l.lead_contact = ?`; params.push(args.lead_contact); }
 
   query += ` ORDER BY e.createdtime DESC LIMIT ?`;
   params.push(parseInt(args.limit) || 100);
@@ -201,7 +198,7 @@ async function getOpportunities(args = {}) {
   if (args.status) { query += ` AND p.ssalesprocesses_status = ?`; params.push(args.status); }
   if (args.min_amount) { query += ` AND p.estimated >= ?`; params.push(parseFloat(args.min_amount)); }
   if (args.opportunity_company) { query += ` AND p.opportunity_company = ?`; params.push(args.opportunity_company); }
-  
+
   query += ` ORDER BY e.createdtime DESC LIMIT ?`;
   params.push(parseInt(args.limit) || 100);
   const [rows] = await pool.execute(query, params);
@@ -227,38 +224,191 @@ async function getInvoices(args = {}) {
   return rows;
 }
 
-// --- API ---
+// --- DEFINICJE NARZĘDZI MCP ---
+
+const TOOLS = [
+  {
+    name: 'get_stats',
+    description: 'Zwraca zagregowane statystyki (liczba rekordów, suma kwot) dla modułu YetiForce: leads, contacts, accounts, opportunities lub invoices. Pozwala filtrować po dacie, statusie/etapie i powiązanym kontrahencie.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        module: { type: 'string', enum: ['leads', 'contacts', 'accounts', 'opportunities', 'invoices'], description: 'Moduł CRM' },
+        date_from: { type: 'string', description: 'Data od (YYYY-MM-DD)' },
+        date_to: { type: 'string', description: 'Data do (YYYY-MM-DD)' },
+        status: { type: 'string', description: 'Status rekordu (lub etap leada, np. SQL/MQL - zostanie wykryty automatycznie)' },
+        stage: { type: 'string', description: 'Etap leada (SQL, MQL, IQL, SAL, Hot, Cold, Warm)' },
+        account_id: { type: 'string', description: 'ID powiązanego kontrahenta' }
+      },
+      required: ['module']
+    }
+  },
+  {
+    name: 'get_leads',
+    description: 'Lista leadów z YetiForce z możliwością filtrowania.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        limit: { type: 'number', description: 'Maks. liczba wyników (domyślnie 100)' },
+        search: { type: 'string', description: 'Szukaj w imieniu, nazwisku, firmie' },
+        date_from: { type: 'string' },
+        date_to: { type: 'string' },
+        status: { type: 'string' },
+        stage: { type: 'string' },
+        lead_account: { type: 'string', description: 'ID powiązanego kontrahenta' },
+        lead_contact: { type: 'string', description: 'ID powiązanego kontaktu' }
+      }
+    }
+  },
+  {
+    name: 'get_contacts',
+    description: 'Lista kontaktów z YetiForce z możliwością filtrowania.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        limit: { type: 'number' },
+        search: { type: 'string', description: 'Szukaj w imieniu, nazwisku, nazwie firmy' },
+        date_from: { type: 'string' },
+        date_to: { type: 'string' },
+        account: { type: 'string', description: 'ID kontrahenta' }
+      }
+    }
+  },
+  {
+    name: 'get_accounts',
+    description: 'Lista kontrahentów (firm) z YetiForce z możliwością filtrowania.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        limit: { type: 'number' },
+        search: { type: 'string', description: 'Szukaj w nazwie firmy lub NIP' },
+        date_from: { type: 'string' },
+        date_to: { type: 'string' }
+      }
+    }
+  },
+  {
+    name: 'get_opportunities',
+    description: 'Lista szans sprzedaży (opportunities) z YetiForce z możliwością filtrowania.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        limit: { type: 'number' },
+        search: { type: 'string' },
+        date_from: { type: 'string' },
+        date_to: { type: 'string' },
+        status: { type: 'string' },
+        min_amount: { type: 'number', description: 'Minimalna wartość szansy' },
+        opportunity_company: { type: 'string', description: 'ID powiązanego kontrahenta' }
+      }
+    }
+  },
+  {
+    name: 'get_invoices',
+    description: 'Lista faktur sprzedażowych z YetiForce z możliwością filtrowania.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        limit: { type: 'number' },
+        search: { type: 'string' },
+        date_from: { type: 'string' },
+        date_to: { type: 'string' },
+        status: { type: 'string' }
+      }
+    }
+  }
+];
+
+const TOOL_HANDLERS = {
+  get_stats: getStats,
+  get_leads: getLeads,
+  get_contacts: getContacts,
+  get_accounts: getAccounts,
+  get_opportunities: getOpportunities,
+  get_invoices: getInvoices
+};
+
+// --- SERWER MCP ---
+
+function createMcpServer() {
+  const server = new Server(
+    { name: 'yetiforce-mcp', version: '2.0.0' },
+    { capabilities: { tools: {} } }
+  );
+
+  server.setRequestHandler(ListToolsRequestSchema, async () => ({
+    tools: TOOLS
+  }));
+
+  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    const { name, arguments: args } = request.params;
+    const handler = TOOL_HANDLERS[name];
+    if (!handler) {
+      throw new Error(`Nieznane narzędzie: ${name}`);
+    }
+    try {
+      const result = await handler(args || {});
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
+      };
+    } catch (error) {
+      return {
+        content: [{ type: 'text', text: `Błąd: ${error.message}` }],
+        isError: true
+      };
+    }
+  });
+
+  return server;
+}
+
+// --- HTTP / SSE TRANSPORT ---
+
 const app = express();
 app.use(express.json());
+
 const AUTH_TOKEN = process.env.API_TOKEN;
 
-app.use((req, res, next) => {
-  if (req.path === '/health') return next();
+function checkAuth(req, res) {
   const authHeader = req.headers['authorization'];
-  if (!authHeader || authHeader.split(' ')[1] !== AUTH_TOKEN) return res.status(403).json({ error: 'Invalid token' });
-  next();
-});
+  if (!authHeader || authHeader.split(' ')[1] !== AUTH_TOKEN) {
+    res.status(403).json({ error: 'Invalid token' });
+    return false;
+  }
+  return true;
+}
 
-app.get('/tools', (req, res) => {
-  res.json({
-    tools: [
-      { name: 'get_stats', description: 'Statystyki liczbowe', parameters: ['module', 'date_from', 'date_to', 'status', 'stage', 'account_id'] },
-      { name: 'get_leads', parameters: ['limit', 'search', 'date_from', 'date_to', 'stage', 'status', 'lead_account'] },
-      { name: 'get_opportunities', parameters: ['limit', 'search', 'date_from', 'date_to', 'status', 'opportunity_company'] },
-      { name: 'get_accounts', parameters: ['limit', 'search'] },
-      { name: 'get_contacts', parameters: ['limit', 'search', 'account'] }
-    ]
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
+const transports = {};
+
+// Klient MCP łączy się tutaj (Server-Sent Events) - wymaga nagłówka Authorization: Bearer <token>
+app.get('/sse', async (req, res) => {
+  if (!checkAuth(req, res)) return;
+
+  const server = createMcpServer();
+  const transport = new SSEServerTransport('/messages', res);
+  transports[transport.sessionId] = transport;
+
+  res.on('close', () => {
+    delete transports[transport.sessionId];
   });
+
+  await server.connect(transport);
 });
 
-app.get('/stats', async (req, res) => { try { res.json({ success: true, data: await getStats(req.query) }); } catch (e) { res.status(500).json({ error: e.message }); } });
-app.get('/contacts', async (req, res) => res.json({ success: true, data: await getContacts(req.query) }));
-app.get('/accounts', async (req, res) => res.json({ success: true, data: await getAccounts(req.query) }));
-app.get('/leads', async (req, res) => res.json({ success: true, data: await getLeads(req.query) }));
-app.get('/opportunities', async (req, res) => res.json({ success: true, data: await getOpportunities(req.query) }));
-app.get('/invoices', async (req, res) => res.json({ success: true, data: await getInvoices(req.query) }));
-app.get('/ssalesprocesses', async (req, res) => res.json({ success: true, data: await getOpportunities(req.query) }));
-app.get('/SSalesProcesses', async (req, res) => res.json({ success: true, data: await getOpportunities(req.query) }));
+// Klient MCP wysyła tu wywołania narzędzi (JSON-RPC)
+app.post('/messages', async (req, res) => {
+  const sessionId = req.query.sessionId;
+  const transport = transports[sessionId];
+  if (!transport) {
+    res.status(400).send('Brak sesji dla podanego sessionId - połącz się najpierw z /sse');
+    return;
+  }
+  await transport.handlePostMessage(req, res, req.body);
+});
 
 const PORT = process.env.MCP_PORT || 3000;
-testConnection().then(() => app.listen(PORT, '0.0.0.0', () => console.log(`🚀 YetiForce Stats API running on ${PORT}`)));
+testConnection().then(() =>
+  app.listen(PORT, '0.0.0.0', () => console.log(`🚀 YetiForce MCP Server (SSE) running on ${PORT}`))
+);
