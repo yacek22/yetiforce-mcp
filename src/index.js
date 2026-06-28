@@ -133,7 +133,13 @@ async function getContacts(args = {}) {
     WHERE e.deleted = 0
   `;
   const params = [];
-  if (args.search) { query += ` AND (c.lastname LIKE ? OR c.firstname LIKE ? OR a.accountname LIKE ?)`; params.push(`%${args.search}%`, `%${args.search}%`, `%${args.search}%`); }
+  if (args.search) {
+    // CUSTOM (Averica, 2026-06-26): dodano dopasowanie po "imię nazwisko" jako całości -
+    // model często przekazuje pełne imię+nazwisko w jednym ciągu, a osobne kolumny
+    // firstname/lastname nie zawierają tego jako podciągu, więc wynik wychodził pusty.
+    query += ` AND (c.lastname LIKE ? OR c.firstname LIKE ? OR a.accountname LIKE ? OR CONCAT(c.firstname, ' ', c.lastname) LIKE ?)`;
+    params.push(`%${args.search}%`, `%${args.search}%`, `%${args.search}%`, `%${args.search}%`);
+  }
   if (args.date_from) { query += ` AND e.createdtime >= ?`; params.push(args.date_from + ' 00:00:00'); }
   if (args.date_to) { query += ` AND e.createdtime <= ?`; params.push(args.date_to + ' 23:59:59'); }
   if (args.account) { query += ` AND c.contact_account = ?`; params.push(args.account); }
@@ -183,7 +189,10 @@ async function getLeads(args = {}) {
     WHERE e.deleted = 0
   `;
   const params = [];
-  if (args.search) { query += ` AND (l.lead_firstname LIKE ? OR l.lead_lastname LIKE ? OR l.company LIKE ?)`; params.push(`%${args.search}%`, `%${args.search}%`, `%${args.search}%`); }
+  if (args.search) {
+    query += ` AND (l.lead_firstname LIKE ? OR l.lead_lastname LIKE ? OR l.company LIKE ? OR CONCAT(l.lead_firstname, ' ', l.lead_lastname) LIKE ?)`;
+    params.push(`%${args.search}%`, `%${args.search}%`, `%${args.search}%`, `%${args.search}%`);
+  }
   if (args.date_from) { query += ` AND e.createdtime >= ?`; params.push(args.date_from + ' 00:00:00'); }
   if (args.date_to) { query += ` AND e.createdtime <= ?`; params.push(args.date_to + ' 23:59:59'); }
 
