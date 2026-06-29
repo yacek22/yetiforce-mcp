@@ -270,13 +270,19 @@ async function listModules() {
 // językowych. Najprościej i najbezpieczniej pobrać je z oficjalnego webservice REST
 // (ten sam mechanizm, który już znamy z n8n) - jedno wywołanie Fields() zwraca
 // wszystkie pola modułu razem z ich aktualnymi, przetłumaczonymi wartościami list.
-const YF_API_URL = 'https://yeti.averica.ai';
-const YF_API_AUTH_BASIC = 'Basic YXBpMjI6QXBpMjIzISE=';
-const YF_API_KEY = 'Kr4UV8cuG1nJn8MeQt5b1qWtdJHM7zQB';
-const YF_API_USERNAME = 'spam@revoflow.net';
-const YF_API_PASSWORD = 'Api223!!';
+// CUSTOM (Averica, 2026-06-29): dane logowania PRZENIESIONE do zmiennych środowiskowych
+// po wycieku poprzedniego hasła wykrytym przez GitGuardian (nie wpisywać tu sekretów
+// na stałe - ustaw je w panelu Coolify, Environment Variables).
+const YF_API_URL = process.env.YF_API_URL || 'https://yeti.averica.ai';
+const YF_API_AUTH_BASIC = process.env.YF_API_AUTH_BASIC;
+const YF_API_KEY = process.env.YF_API_KEY;
+const YF_API_USERNAME = process.env.YF_API_USERNAME;
+const YF_API_PASSWORD = process.env.YF_API_PASSWORD;
 
 async function yfLogin() {
+  if (!YF_API_AUTH_BASIC || !YF_API_KEY || !YF_API_USERNAME || !YF_API_PASSWORD) {
+    throw new Error('Brak zmiennych środowiskowych YF_API_AUTH_BASIC/YF_API_KEY/YF_API_USERNAME/YF_API_PASSWORD - ustaw je w Coolify.');
+  }
   const res = await fetch(`${YF_API_URL}/webservice/WebserviceStandard/Users/Login`, {
     method: 'POST',
     headers: {
