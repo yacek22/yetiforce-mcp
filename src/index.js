@@ -264,6 +264,49 @@ async function listModules() {
   return rows;
 }
 
+// --- Webservice REST (CUSTOM, Averica 2026-06-29) ---
+// Wartości list (picklist) nie są zapisane w metadanych vtiger_field (które czytamy
+// bezpośrednio z bazy) - YetiForce trzyma je w osobnych tabelach + tłumaczeniach
+// językowych. Najprościej i najbezpieczniej pobrać je z oficjalnego webservice REST
+// (ten sam mechanizm, który już znamy z n8n) - jedno wywołanie Fields() zwraca
+// wszystkie pola modułu razem z ich aktualnymi, przetłumaczonymi wartościami list.
+const YF_API_URL = 'https://yeti.averica.ai';
+const YF_API_AUTH_BASIC = 'Basic YXBpMjI6QXBpMjIzISE=';
+const YF_API_KEY = 'Kr4UV8cuG1nJn8MeQt5b1qWtdJHM7zQB';
+const YF_API_USERNAME = 'spam@revoflow.net';
+const YF_API_PASSWORD = 'Api223!!';
+
+async function yfLogin() {
+  const res = await fetch(`${YF_API_URL}/webservice/WebserviceStandard/Users/Login`, {
+    method: 'POST',
+    headers: {
+      Authorization: YF_API_AUTH_BASIC,
+      'X-API-KEY': YF_API_KEY,
+      ENCRYPTED: '0',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ userName: YF_API_USERNAME, password: YF_API_PASSWORD, code: '', params: { language: '' } })
+  });
+  const data = await res.json();
+  return data?.result?.token || null;
+}
+
+async function yfGetFieldsMeta(moduleName) {
+  const token = await yfLogin();
+  if (!token) return null;
+  const res = await fetch(`${YF_API_URL}/webservice/WebserviceStandard/${moduleName}/Fields`, {
+    method: 'GET',
+    headers: {
+      Authorization: YF_API_AUTH_BASIC,
+      'X-API-KEY': YF_API_KEY,
+      ENCRYPTED: '0',
+      'X-TOKEN': token
+    }
+  });
+  const data = await res.json();
+  return data?.result?.fields || null;
+}
+
 async function describeModule(args = {}) {
   const moduleName = args.module;
   if (!moduleName) throw new Error('Parametr "module" jest wymagany.');
@@ -280,6 +323,24 @@ async function describeModule(args = {}) {
     [tabid]
   );
 
+  // Dociągamy NA ŻYWO prawdziwe, aktualne wartości list (picklist) z webservice -
+  // jeśli się nie uda (np. webservice padnie), zwracamy strukturę bazową bez tego,
+  // żeby describe_module nigdy nie wywaliło się całkowicie z powodu tego dodatku.
+  let webserviceFields = null;
+  try {
+    webserviceFields = await yfGetFieldsMeta(moduleName);
+  } catch (e) {
+    webserviceFields = null;
+  }
+
+  const fieldsWithPicklists = fieldRows.map((f) => {
+    const wsField = webserviceFields?.[f.fieldname];
+    if (wsField?.picklistvalues) {
+      return { ...f, picklistvalues: wsField.picklistvalues };
+    }
+    return f;
+  });
+
   const [entityRows] = await pool.execute(
     `SELECT tablename, entityidfield, entityidcolumn, fieldname AS label_field
      FROM vtiger_entityname
@@ -291,7 +352,10 @@ async function describeModule(args = {}) {
     module: moduleName,
     tabid,
     primary_entity: entityRows[0] || null,
-    fields: fieldRows
+    fields: fieldsWithPicklists,
+    picklist_values_uwaga: webserviceFields
+      ? 'Pole "picklistvalues" (jeśli obecne) zawiera AKTUALNE wartości listy pobrane na żywo z CRM - zawsze ufaj tym wartościom, nie zgaduj.'
+      : 'Nie udało się pobrać aktualnych wartości list z webservice - jeśli pole jest typu lista (picklist), zapytaj użytkownika o dokładne wartości albo sprawdź ręcznie, nie zgaduj.'
   };
 }
 
@@ -517,7 +581,7 @@ const TOOLS = [
   },
   {
     name: 'describe_module',
-    description: 'Zwraca KOMPLETNĄ strukturę pól danego modułu YetiForce (nazwy kolumn, etykiety z UI, tabelę, typ danych) - czytane na żywo z metadanych CRM, włącznie z polami leżącymi w dodatkowych tabelach (np. adresy są w osobnej tabeli niż dane podstawowe firmy/kontaktu - to jest normalne i te pola SĄ dostępne przez query_module). ZAWSZE wywołaj to narzędzie zanim powiesz użytkownikowi że jakiegoś pola/informacji nie ma w CRM - dedykowane narzędzia (get_accounts, get_contacts itd.) pokazują tylko wąski podzbiór pól.',
+    description: 'Zwraca KOMPLETNĄ strukturę pól danego modułu YetiForce (nazwy kolumn, etykiety z UI, tabelę, typ danych) - czytane na żywo z metadanych CRM, włącznie z polami leżącymi w dodatkowych tabelach (np. adresy są w osobnej tabeli niż dane podstawowe firmy/kontaktu - to jest normalne i te pola SĄ dostępne przez query_module). Pola typu lista (picklist, np. status, etap, typ) mają dodatkowo klucz "picklistvalues" z AKTUALNYMI, prawdziwymi wartościami tej listy pobranymi na żywo z CRM (NIGDY nie zgaduj/nie pamiętaj wartości list samodzielnie - mogą się różnić między instalacjami i zmieniać w czasie - zawsze sprawdzaj przez to pole). ZAWSZE wywołaj to narzędzie zanim powiesz użytkownikowi że jakiegoś pola/informacji/wartości listy nie ma w CRM - dedykowane narzędzia (get_accounts, get_contacts itd.) pokazują tylko wąski podzbiór pól.',
     inputSchema: {
       type: 'object',
       properties: {
