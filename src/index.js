@@ -190,8 +190,13 @@ async function getLeads(args = {}) {
   `;
   const params = [];
   if (args.search) {
-    query += ` AND (l.lead_firstname LIKE ? OR l.lead_lastname LIKE ? OR l.company LIKE ? OR CONCAT(l.lead_firstname, ' ', l.lead_lastname) LIKE ?)`;
-    params.push(`%${args.search}%`, `%${args.search}%`, `%${args.search}%`, `%${args.search}%`);
+    const noSpaces = args.search.replace(/\s+/g, '');
+    const tokens = args.search.split(/\s+/).filter(t => t.length >= 2);
+    const variants = [args.search, ...(noSpaces !== args.search ? [noSpaces] : []), ...tokens.filter(t => t !== args.search)];
+    const companyOr = variants.map(() => `l.company LIKE ?`).join(' OR ');
+    query += ` AND (l.lead_firstname LIKE ? OR l.lead_lastname LIKE ? OR CONCAT(l.lead_firstname, ' ', l.lead_lastname) LIKE ? OR ${companyOr})`;
+    params.push(`%${args.search}%`, `%${args.search}%`, `%${args.search}%`);
+    variants.forEach(v => params.push(`%${v}%`));
   }
   if (args.date_from) { query += ` AND e.createdtime >= ?`; params.push(args.date_from + ' 00:00:00'); }
   if (args.date_to) { query += ` AND e.createdtime <= ?`; params.push(args.date_to + ' 23:59:59'); }
@@ -247,6 +252,67 @@ async function getInvoices(args = {}) {
   params.push(parseInt(args.limit) || 100);
   const [rows] = await pool.execute(query, params);
   return rows;
+}
+
+async function getAccountSummary(args = {}) {
+  const accountId = args.account_id;
+  if (!accountId) throw new Error('Parametr "account_id" jest wymagany.');
+
+  const [accountRows] = await pool.execute(
+    `SELECT a.accountid, a.accountname, a.email1, a.phone, a.vat_id, a.accounts_status, e.createdtime,
+            u.first_name, u.last_name
+     FROM vtiger_account a
+     JOIN vtiger_crmentity e ON a.accountid = e.crmid
+     LEFT JOIN vtiger_users u ON e.smownerid = u.id
+     WHERE e.deleted = 0 AND a.accountid = ?`,
+    [accountId]
+  );
+
+  const [contactRows] = await pool.execute(
+    `SELECT c.contactid, c.firstname, c.lastname, c.email, c.phone, e.createdtime
+     FROM vtiger_contactdetails c
+     JOIN vtiger_crmentity e ON c.contactid = e.crmid
+     WHERE e.deleted = 0 AND c.contact_account = ?
+     ORDER BY e.createdtime DESC LIMIT 20`,
+    [accountId]
+  );
+
+  const [leadRows] = await pool.execute(
+    `SELECT l.leadid, l.lead_firstname, l.lead_lastname, l.company, l.leadstatus, l.lead_stage, e.createdtime,
+            u.first_name, u.last_name
+     FROM vtiger_leaddetails l
+     JOIN vtiger_crmentity e ON l.leadid = e.crmid
+     LEFT JOIN vtiger_users u ON e.smownerid = u.id
+     WHERE e.deleted = 0 AND l.lead_account = ?
+     ORDER BY e.createdtime DESC LIMIT 20`,
+    [accountId]
+  );
+
+  const [opportunityRows] = await pool.execute(
+    `SELECT p.ssalesprocessesid as id, p.subject, p.estimated, p.ssalesprocesses_status, e.createdtime
+     FROM u_yf_ssalesprocesses p
+     JOIN vtiger_crmentity e ON p.ssalesprocessesid = e.crmid
+     WHERE e.deleted = 0 AND p.opportunity_company = ?
+     ORDER BY e.createdtime DESC LIMIT 20`,
+    [accountId]
+  );
+
+  const [invoiceRows] = await pool.execute(
+    `SELECT i.finvoiceid, i.subject, i.sum_gross, i.finvoice_status, e.createdtime
+     FROM u_yf_finvoice i
+     JOIN vtiger_crmentity e ON i.finvoiceid = e.crmid
+     WHERE e.deleted = 0 AND i.invoices_account = ?
+     ORDER BY e.createdtime DESC LIMIT 20`,
+    [accountId]
+  );
+
+  return {
+    account: accountRows[0] || null,
+    contacts: contactRows,
+    leads: leadRows,
+    opportunities: opportunityRows,
+    invoices: invoiceRows
+  };
 }
 
 // --- NARZĘDZIA "ŻYWEJ" STRUKTURY CRM ---
@@ -460,8 +526,17 @@ async function queryModule(args = {}) {
   if (args.search) {
     const textCols = fieldsToSelect.filter(f => f !== idColumn);
     if (textCols.length) {
-      query += ` AND (${textCols.map(f => `${aliasFor(f)}.${f} LIKE ?`).join(' OR ')})`;
-      textCols.forEach(() => params.push(`%${args.search}%`));
+      // Szukamy trzema sposobami: pełna fraza, fraza bez spacji (Profi dent → Profident),
+      // oraz każdy token osobno (OR) — żeby "Profi dent" trafiało w "PROFIDENT NEO..."
+      const searchVariants = [args.search];
+      const noSpaces = args.search.replace(/\s+/g, '');
+      if (noSpaces !== args.search) searchVariants.push(noSpaces);
+      const tokens = args.search.split(/\s+/).filter(t => t.length >= 2);
+      tokens.forEach(t => { if (!searchVariants.includes(t)) searchVariants.push(t); });
+
+      const colConditions = textCols.map(f => searchVariants.map(() => `${aliasFor(f)}.${f} LIKE ?`).join(' OR ')).join(' OR ');
+      query += ` AND (${colConditions})`;
+      textCols.forEach(() => searchVariants.forEach(v => params.push(`%${v}%`)));
     }
   }
   if (args.date_from) { query += ` AND e.createdtime >= ?`; params.push(args.date_from + ' 00:00:00'); }
@@ -526,7 +601,7 @@ const TOOLS = [
   },
   {
     name: 'get_accounts',
-    description: 'Lista kontrahentów (firm) z YetiForce - zwraca nazwę, e-mail, telefon, NIP, rodzaj kontrahenta, formę prawną ORAZ adres (pole "addresslevel5a" = miejscowość/miasto, "addresslevel2a" = województwo - te pola mają nieczytelne wewnętrzne nazwy, ale ZAWSZE pokazuj ich wartość, nigdy nie mów że danych nie ma bez sprawdzenia tego pola). Jeśli potrzebujesz jeszcze innych pól (branża, opis, social media) - użyj describe_module(module="Accounts") + query_module.',
+    description: 'Lista kontrahentów (firm) z YetiForce - zwraca nazwę, e-mail, telefon, NIP, rodzaj kontrahenta, formę prawną ORAZ adres (pole "addresslevel5a" = miejscowość/miasto, "addresslevel2a" = województwo - te pola mają nieczytelne wewnętrzne nazwy, ale ZAWSZE pokazuj ich wartość, nigdy nie mów że danych nie ma bez sprawdzenia tego pola). Po znalezieniu firmy - jeśli użytkownik pyta o powiązane leady, kontakty, szanse lub faktury - wywołaj od razu get_account_summary(account_id=<accountid>) zamiast szukać po nazwie w innych modułach. Jeśli potrzebujesz jeszcze innych pól (branża, opis, social media) - użyj describe_module(module="Accounts") + query_module.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -581,6 +656,17 @@ const TOOLS = [
     }
   },
   {
+    name: 'get_account_summary',
+    description: 'Pobiera PEŁNE podsumowanie kontrahenta (Account) po jego ID: dane firmy + wszystkie powiązane Kontakty, Leady, Szanse Sprzedaży i Faktury w jednym wywołaniu. ZAWSZE używaj tego narzędzia po znalezieniu account_id (np. z get_accounts lub get_contacts), jeśli użytkownik pyta o cokolwiek powiązanego z firmą (czy ma leady, szanse, faktury, kto jest kontaktem). NIE szukaj po nazwie w get_leads/get_opportunities osobno — użyj account_id który już masz.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        account_id: { type: 'string', description: 'ID kontrahenta (accountid z get_accounts lub contact_account z get_contacts)' }
+      },
+      required: ['account_id']
+    }
+  },
+  {
     name: 'list_modules',
     description: 'Zwraca listę WSZYSTKICH aktywnych modułów w tej instalacji YetiForce (czytane na żywo z bazy, więc obejmuje też moduły dodane/usunięte/zmienione później, niezależnie od pozostałych narzędzi w tym serwerze). Użyj tego, gdy potrzebujesz danych z modułu innego niż leads/contacts/accounts/opportunities/invoices.',
     inputSchema: { type: 'object', properties: {} }
@@ -622,6 +708,7 @@ const TOOL_HANDLERS = {
   get_partners: getPartners,
   get_opportunities: getOpportunities,
   get_invoices: getInvoices,
+  get_account_summary: getAccountSummary,
   list_modules: listModules,
   describe_module: describeModule,
   query_module: queryModule
