@@ -37,6 +37,35 @@ async function testConnection() {
   }
 }
 
+// CUSTOM (Averica, 2026-07-05): pomocnicze sprawdzenie istnienia kolumny (z cache) -
+// niektóre kolumny (np. accounts_status) nie istnieją w każdej instalacji, a zahardkodowane
+// odwołanie do nieistniejącej kolumny wywala całe zapytanie SQL.
+const columnExistsCache = new Map();
+async function columnExists(table, column) {
+  const key = `${table}.${column}`;
+  if (columnExistsCache.has(key)) return columnExistsCache.get(key);
+  const [rows] = await pool.execute(
+    `SELECT 1 FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1`,
+    [table, column]
+  );
+  const exists = rows.length > 0;
+  columnExistsCache.set(key, exists);
+  return exists;
+}
+
+// CUSTOM (Averica, 2026-07-05): przycinanie bardzo długich picklist (np. lista ~230 krajów
+// w polu adresu) - pełna lista zapycha kontekst modelu w bocie Mattermost i wypycha resztę
+// rozmowy z pamięci, przez co model "głupieje" zamiast korzystać z danych.
+function capPicklist(pv, max = 50) {
+  const keys = Object.keys(pv);
+  if (keys.length <= max) return pv;
+  const capped = {};
+  for (const k of keys.slice(0, max)) capped[k] = pv[k];
+  capped.__uwaga = `Lista skrócona: pokazano ${max} z ${keys.length} wartości. Wartości spoza listy też są prawidłowe - jeśli szukasz konkretnej, załóż że istnieje w CRM.`;
+  return capped;
+}
+
 // --- FUNKCJA STATYSTYK (bez zmian względem oryginału) ---
 async function getStats(args = {}) {
   const moduleMap = {
@@ -102,6 +131,10 @@ async function getStats(args = {}) {
       if (args.module === 'invoices') statusCol = 'finvoice_status';
 
       if (statusCol) {
+        // CUSTOM (Averica, 2026-07-05): kolumna statusu może nie istnieć w tej instalacji
+        if (!(await columnExists(mod.table, statusCol))) {
+          throw new Error(`Kolumna statusu "${statusCol}" nie istnieje w tej instalacji CRM - sprawdź describe_module i przefiltruj przez query_module z "filters".`);
+        }
         query += ` AND t.${statusCol} = ?`;
         params.push(statusValue);
       }
@@ -161,7 +194,8 @@ async function getAccounts(args = {}) {
     search: args.search,
     date_from: args.date_from,
     date_to: args.date_to,
-    limit: args.limit
+    limit: args.limit,
+    _lenient: true
   });
 }
 
@@ -175,7 +209,8 @@ async function getPartners(args = {}) {
     search: args.search,
     date_from: args.date_from,
     date_to: args.date_to,
-    limit: args.limit
+    limit: args.limit,
+    _lenient: true
   });
 }
 
@@ -258,8 +293,11 @@ async function getAccountSummary(args = {}) {
   const accountId = args.account_id;
   if (!accountId) throw new Error('Parametr "account_id" jest wymagany.');
 
+  // CUSTOM (Averica, 2026-07-05): accounts_status dobierane dynamicznie - kolumna nie
+  // istnieje w każdej instalacji, a jej brak wywalał całe podsumowanie.
+  const hasAccountsStatus = await columnExists('vtiger_account', 'accounts_status');
   const [accountRows] = await pool.execute(
-    `SELECT a.accountid, a.accountname, a.email1, a.phone, a.vat_id, a.accounts_status, e.createdtime,
+    `SELECT a.accountid, a.accountname, a.email1, a.phone, a.vat_id, ${hasAccountsStatus ? 'a.accounts_status, ' : ''}e.createdtime,
             u.first_name, u.last_name
      FROM vtiger_account a
      JOIN vtiger_crmentity e ON a.accountid = e.crmid
@@ -405,13 +443,35 @@ async function describeModule(args = {}) {
     webserviceFields = null;
   }
 
-  const fieldsWithPicklists = fieldRows.map((f) => {
+  // CUSTOM (Averica, 2026-07-05):
+  // 1) etykiety pól bierzemy z webservice (są PRZETŁUMACZONE tak jak w UI - "Miejscowość"
+  //    zamiast "AddressLevel5" czy "FL_ACCOUNT_SHORT_NAME"), z fallbackiem na surową
+  //    etykietę z vtiger_field, gdy webservice nie odpowiada;
+  // 2) gdy webservice nie zwraca wartości picklisty (np. puste picklistvalues dla
+  //    accounttype), próbujemy odczytać je bezpośrednio z tabeli vtiger_<fieldname>
+  //    (standardowa konwencja YetiForce dla picklist);
+  // 3) bardzo długie picklisty (kraje itp.) przycinamy - patrz capPicklist().
+  const PICKLIST_UITYPES = new Set([15, 16, 33]);
+  const fieldsWithPicklists = [];
+  for (const f of fieldRows) {
     const wsField = webserviceFields?.[f.fieldname];
-    if (wsField?.picklistvalues) {
-      return { ...f, picklistvalues: wsField.picklistvalues };
+    const out = { ...f };
+    if (wsField?.label) out.fieldlabel = wsField.label;
+    let pv = wsField?.picklistvalues;
+    if (PICKLIST_UITYPES.has(f.uitype) && (!pv || !Object.keys(pv).length) && /^[a-z0-9_]+$/i.test(f.fieldname)) {
+      try {
+        const [plRows] = await pool.execute(`SELECT ${f.fieldname} FROM vtiger_${f.fieldname}`);
+        if (plRows.length) {
+          pv = {};
+          for (const r of plRows) pv[r[f.fieldname]] = r[f.fieldname];
+        }
+      } catch (e) {
+        // brak tabeli picklisty - trudno, zostaje bez wartości
+      }
     }
-    return f;
-  });
+    if (pv && Object.keys(pv).length) out.picklistvalues = capPicklist(pv);
+    fieldsWithPicklists.push(out);
+  }
 
   const [entityRows] = await pool.execute(
     `SELECT tablename, entityidfield, entityidcolumn, fieldname AS label_field
@@ -461,7 +521,7 @@ async function queryModule(args = {}) {
   // (LEFT JOIN) każdą dodatkową tabelę po jej własnym kluczu głównym - dzięki temu
   // żadne pole (adres, branża, typ kontrahenta itd.) nie jest niewidoczne.
   const [allFieldRows] = await pool.execute(
-    `SELECT DISTINCT tablename, columnname FROM vtiger_field WHERE tabid = ?`,
+    `SELECT DISTINCT tablename, columnname, uitype FROM vtiger_field WHERE tabid = ?`,
     [tabid]
   );
 
@@ -470,14 +530,14 @@ async function queryModule(args = {}) {
 
   for (const row of allFieldRows) {
     if (row.tablename === primaryTable) {
-      colMap.set(row.columnname, { alias: 't', tablename: primaryTable });
+      colMap.set(row.columnname, { alias: 't', tablename: primaryTable, uitype: row.uitype });
     } else if (row.tablename === 'vtiger_crmentity') {
-      colMap.set(row.columnname, { alias: 'e', tablename: 'vtiger_crmentity' });
+      colMap.set(row.columnname, { alias: 'e', tablename: 'vtiger_crmentity', uitype: row.uitype });
     } else {
       if (!extraTables.has(row.tablename)) {
         extraTables.set(row.tablename, `x${extraTables.size + 1}`);
       }
-      colMap.set(row.columnname, { alias: extraTables.get(row.tablename), tablename: row.tablename });
+      colMap.set(row.columnname, { alias: extraTables.get(row.tablename), tablename: row.tablename, uitype: row.uitype });
     }
   }
 
@@ -501,7 +561,22 @@ async function queryModule(args = {}) {
 
   const aliasFor = (col) => (col === idColumn ? 't' : (colMap.get(col)?.alias || 't'));
 
-  let fieldsToSelect = Array.isArray(args.fields) ? args.fields.filter(f => f === idColumn || colMap.has(f)) : [];
+  // CUSTOM (Averica, 2026-07-05): nieznane kolumny w "fields" zgłaszamy błędem zamiast
+  // po cichu pomijać - model dostaje jasny sygnał, że ma sprawdzić describe_module,
+  // zamiast dostać niekompletny wynik i twierdzić że "danych nie ma".
+  // (_lenient: tryb cichy dla wewnętrznych wywołań z get_accounts/get_partners.)
+  let fieldsToSelect = [];
+  if (Array.isArray(args.fields) && args.fields.length) {
+    const unknown = args.fields.filter(f => f !== idColumn && !colMap.has(f));
+    if (unknown.length && !args._lenient) {
+      throw new Error(`Nieznane kolumny: ${unknown.join(', ')}. Użyj nazw "columnname" z describe_module(module="${moduleName}").`);
+    }
+    fieldsToSelect = args.fields.filter(f => f === idColumn || colMap.has(f));
+  }
+  if (!fieldsToSelect.length && args.record_id) {
+    // pojedynczy rekord - zwracamy komplet pól modułu (jeden wiersz, więc rozmiar OK)
+    fieldsToSelect = Array.from(colMap.keys());
+  }
   if (!fieldsToSelect.length) {
     // domyślnie tylko pola głównej tabeli (krótka, czytelna odpowiedź) - resztę (adresy,
     // pola z tabel dodatkowych) trzeba wskazać explicite w "fields" po sprawdzeniu describe_module
@@ -523,8 +598,56 @@ async function queryModule(args = {}) {
   `;
   const params = [];
 
+  // CUSTOM (Averica, 2026-07-05): pobranie jednego rekordu po ID (używane przez get_record)
+  if (args.record_id) {
+    query += ` AND t.${idColumn} = ?`;
+    params.push(parseInt(args.record_id));
+  }
+
+  // CUSTOM (Averica, 2026-07-05): filtry porównawcze na dowolnej kolumnie modułu.
+  // Bez tego nie dało się zapytać np. "komentarze gdzie related_to = 1289" albo
+  // "zdarzenia gdzie link = <id firmy>" - model musiał pobierać 50 ostatnich rekordów
+  // i filtrować w głowie, co słabszym modelom nie wychodziło ("nie wiem").
+  const FILTER_OPS = { '=': '=', '!=': '<>', '<>': '<>', '>': '>', '>=': '>=', '<': '<', '<=': '<=' };
+  if (Array.isArray(args.filters)) {
+    for (const f of args.filters) {
+      if (!f || !f.column) continue;
+      if (f.column !== idColumn && !colMap.has(f.column)) {
+        throw new Error(`Nieznana kolumna w "filters": ${f.column}. Użyj nazw "columnname" z describe_module(module="${moduleName}").`);
+      }
+      const colRef = `${aliasFor(f.column)}.${f.column}`;
+      const op = String(f.operator || '=').toLowerCase();
+      if (op === 'like') {
+        query += ` AND ${colRef} LIKE ?`;
+        params.push(`%${f.value}%`);
+      } else if (op === 'in') {
+        const vals = Array.isArray(f.value) ? f.value : [f.value];
+        if (!vals.length) continue;
+        query += ` AND ${colRef} IN (${vals.map(() => '?').join(',')})`;
+        params.push(...vals);
+      } else if (op === 'empty') {
+        query += ` AND (${colRef} IS NULL OR ${colRef} = '')`;
+      } else if (op === 'notempty') {
+        query += ` AND ${colRef} IS NOT NULL AND ${colRef} <> ''`;
+      } else if (FILTER_OPS[op]) {
+        query += ` AND ${colRef} ${FILTER_OPS[op]} ?`;
+        params.push(f.value);
+      } else {
+        throw new Error(`Nieznany operator w "filters": ${f.operator}. Dozwolone: =, !=, >, >=, <, <=, like, in, empty, notempty.`);
+      }
+    }
+  }
+
   if (args.search) {
-    const textCols = fieldsToSelect.filter(f => f !== idColumn);
+    // CUSTOM (Averica, 2026-07-05): szukamy po WSZYSTKICH tekstowych kolumnach modułu
+    // (nie tylko zwracanych) - wcześniej wyszukiwanie po mieście/adresie nie działało,
+    // jeśli kolumn adresowych nie było w "fields".
+    const TEXT_UITYPES = new Set([1, 2, 4, 11, 12, 13, 14, 17, 19, 21, 24, 255]);
+    let textCols = Array.from(colMap.entries())
+      .filter(([, info]) => TEXT_UITYPES.has(info.uitype))
+      .map(([col]) => col)
+      .slice(0, 30);
+    if (!textCols.length) textCols = fieldsToSelect.filter(f => f !== idColumn);
     if (textCols.length) {
       // Szukamy trzema sposobami: pełna fraza, fraza bez spacji (Profi dent → Profident),
       // oraz każdy token osobno (OR) — żeby "Profi dent" trafiało w "PROFIDENT NEO..."
@@ -539,13 +662,101 @@ async function queryModule(args = {}) {
       textCols.forEach(() => searchVariants.forEach(v => params.push(`%${v}%`)));
     }
   }
-  if (args.date_from) { query += ` AND e.createdtime >= ?`; params.push(args.date_from + ' 00:00:00'); }
-  if (args.date_to) { query += ` AND e.createdtime <= ?`; params.push(args.date_to + ' 23:59:59'); }
+  // CUSTOM (Averica, 2026-07-05): date_field - filtr dat po wskazanej kolumnie modułu
+  // (np. date_start w Kalendarzu), a nie zawsze po dacie UTWORZENIA rekordu. Wcześniej
+  // pytanie "co w kalendarzu w przyszłym tygodniu" filtrowało po dacie dodania zdarzenia.
+  let dateCol = 'e.createdtime';
+  if (args.date_field) {
+    if (!colMap.has(args.date_field)) {
+      throw new Error(`Nieznana kolumna w "date_field": ${args.date_field}. Użyj nazwy "columnname" z describe_module(module="${moduleName}").`);
+    }
+    dateCol = `${aliasFor(args.date_field)}.${args.date_field}`;
+  }
+  if (args.date_from) { query += ` AND ${dateCol} >= ?`; params.push(args.date_from + ' 00:00:00'); }
+  if (args.date_to) { query += ` AND ${dateCol} <= ?`; params.push(args.date_to + ' 23:59:59'); }
 
-  query += ` ORDER BY e.createdtime DESC LIMIT ?`;
+  // CUSTOM (Averica, 2026-07-05): sortowanie po dowolnej kolumnie (np. date_start ASC
+  // dla "najbliższych wydarzeń"); domyślnie jak dotąd - najnowsze wg daty utworzenia.
+  let orderClause = ` ORDER BY e.createdtime DESC`;
+  if (args.order_by && args.order_by.column) {
+    const oc = args.order_by.column;
+    if (oc !== idColumn && !colMap.has(oc)) {
+      throw new Error(`Nieznana kolumna w "order_by": ${oc}. Użyj nazwy "columnname" z describe_module(module="${moduleName}").`);
+    }
+    const dir = String(args.order_by.direction || 'ASC').toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+    orderClause = ` ORDER BY ${aliasFor(oc)}.${oc} ${dir}`;
+  }
+  query += orderClause + ` LIMIT ?`;
   params.push(parseInt(args.limit) || 50);
 
   const [rows] = await pool.execute(query, params);
+  return rows;
+}
+
+// CUSTOM (Averica, 2026-07-05): pobranie JEDNEGO rekordu po crmid z automatycznym
+// wykryciem modułu. Pola referencyjne (related_to, link, contact_account...) zwracają
+// gołe ID - bez tego narzędzia model nie miał jak sprawdzić, czego to ID dotyczy.
+async function getRecord(args = {}) {
+  const id = parseInt(args.record_id);
+  if (!id) throw new Error('Parametr "record_id" jest wymagany (liczbowe ID rekordu / crmid).');
+
+  const [entRows] = await pool.execute(
+    `SELECT crmid, setype, label, smownerid, createdtime, modifiedtime, deleted
+     FROM vtiger_crmentity WHERE crmid = ?`,
+    [id]
+  );
+  if (!entRows.length) {
+    throw new Error(`Nie znaleziono rekordu o ID ${id}. Uwaga: ID użytkowników (userid, smownerid) to OSOBNA pula - użyj resolve_ids z type="users".`);
+  }
+  const ent = entRows[0];
+
+  let owner = null;
+  if (ent.smownerid) {
+    const [uRows] = await pool.execute(`SELECT first_name, last_name FROM vtiger_users WHERE id = ?`, [ent.smownerid]);
+    if (uRows.length) owner = `${uRows[0].first_name} ${uRows[0].last_name}`.trim();
+  }
+
+  let data = null;
+  if (!ent.deleted) {
+    try {
+      const rows = await queryModule({ module: ent.setype, fields: args.fields, record_id: id, limit: 1, _lenient: true });
+      data = rows[0] || null;
+    } catch (e) {
+      data = { _uwaga: `Nie udało się pobrać pełnych danych rekordu: ${e.message}` };
+    }
+  }
+
+  return {
+    crmid: ent.crmid,
+    module: ent.setype,
+    label: ent.label,
+    owner,
+    deleted: !!ent.deleted,
+    createdtime: ent.createdtime,
+    modifiedtime: ent.modifiedtime,
+    data
+  };
+}
+
+// CUSTOM (Averica, 2026-07-05): masowe tłumaczenie ID -> (moduł, etykieta), żeby listy
+// z polami referencyjnymi (np. komentarze z related_to) dało się opisać jednym wywołaniem.
+async function resolveIds(args = {}) {
+  const raw = Array.isArray(args.ids) ? args.ids : [args.ids];
+  const ids = [...new Set(raw.map(v => parseInt(v)).filter(Boolean))].slice(0, 200);
+  if (!ids.length) throw new Error('Parametr "ids" jest wymagany (lista liczbowych ID).');
+
+  if (args.type === 'users') {
+    const [rows] = await pool.execute(
+      `SELECT id, first_name, last_name, user_name, status FROM vtiger_users WHERE id IN (${ids.map(() => '?').join(',')})`,
+      ids
+    );
+    return rows.map(r => ({ id: r.id, type: 'user', label: `${r.first_name} ${r.last_name}`.trim(), user_name: r.user_name, status: r.status }));
+  }
+
+  const [rows] = await pool.execute(
+    `SELECT crmid, setype AS module, label, deleted FROM vtiger_crmentity WHERE crmid IN (${ids.map(() => '?').join(',')})`,
+    ids
+  );
   return rows;
 }
 
@@ -684,18 +895,65 @@ const TOOLS = [
   },
   {
     name: 'query_module',
-    description: 'Generyczne pobieranie rekordów z DOWOLNEGO modułu i DOWOLNYCH pól YetiForce (nie tylko tych z dedykowanych narzędzi) - automatycznie łączy (JOIN) wszystkie tabele, w których fizycznie leżą pola tego modułu (np. adres firmy jest w innej tabeli niż jej nazwa/NIP - to narzędzie i tak je pobierze, podaj tylko nazwę kolumny z describe_module). Struktura jest odczytywana na żywo z metadanych CRM.',
+    description: 'Generyczne pobieranie rekordów z DOWOLNEGO modułu i DOWOLNYCH pól YetiForce (nie tylko tych z dedykowanych narzędzi) - automatycznie łączy (JOIN) wszystkie tabele, w których fizycznie leżą pola tego modułu (np. adres firmy jest w innej tabeli niż jej nazwa/NIP). Struktura odczytywana na żywo z metadanych CRM. NAJWAŻNIEJSZE: parametr "filters" pozwala filtrować po dowolnej kolumnie - np. komentarze do konkretnego rekordu: module="ModComments", filters=[{"column":"related_to","value":1289}]; zdarzenia kalendarza firmy: module="Calendar", filters=[{"column":"link","value":<id>}]. Do pytań o kalendarz wg TERMINU zdarzenia ustaw date_field="date_start" (bez tego date_from/date_to filtrują po dacie UTWORZENIA rekordu!) oraz order_by={"column":"date_start","direction":"ASC"}.',
     inputSchema: {
       type: 'object',
       properties: {
         module: { type: 'string', description: 'Techniczna nazwa modułu (z list_modules)' },
-        fields: { type: 'array', items: { type: 'string' }, description: 'Lista kolumn do pobrania (nazwy "columnname" z describe_module - mogą pochodzić z różnych tabel tego modułu, np. pola adresowe). Jeśli puste - pobiera pierwsze ~15 kolumn z głównej tabeli modułu (bez adresów/pól dodatkowych).' },
-        search: { type: 'string', description: 'Szukaj tekstowo w wybranych kolumnach' },
+        fields: { type: 'array', items: { type: 'string' }, description: 'Lista kolumn do pobrania (nazwy "columnname" z describe_module - mogą pochodzić z różnych tabel tego modułu, np. pola adresowe). Jeśli puste - pobiera pierwsze ~15 kolumn z głównej tabeli modułu (bez adresów/pól dodatkowych). Nieznana kolumna = błąd z podpowiedzią.' },
+        filters: {
+          type: 'array',
+          description: 'Filtry na dowolnych kolumnach modułu (łączone AND). Każdy: {"column": nazwa kolumny z describe_module, "operator": "=" | "!=" | ">" | ">=" | "<" | "<=" | "like" | "in" | "empty" | "notempty" (domyślnie "="), "value": wartość (dla "in" - tablica; dla "empty"/"notempty" - pomiń)}. Np. [{"column":"related_to","value":1289}] albo [{"column":"status","operator":"in","value":["PLL_PLANNED","PLL_IN_REALIZATION"]}].',
+          items: {
+            type: 'object',
+            properties: {
+              column: { type: 'string' },
+              operator: { type: 'string' },
+              value: {}
+            },
+            required: ['column']
+          }
+        },
+        search: { type: 'string', description: 'Szukaj tekstowo - przeszukuje WSZYSTKIE tekstowe kolumny modułu (też adresy), nie tylko zwracane' },
         date_from: { type: 'string' },
         date_to: { type: 'string' },
+        date_field: { type: 'string', description: 'Kolumna daty, po której filtrują date_from/date_to (np. "date_start" w Calendar, "saledate" w FInvoice). Domyślnie data utworzenia rekordu (createdtime).' },
+        order_by: {
+          type: 'object',
+          description: 'Sortowanie: {"column": nazwa kolumny, "direction": "ASC"|"DESC"}. Domyślnie createdtime DESC (najnowsze).',
+          properties: {
+            column: { type: 'string' },
+            direction: { type: 'string', enum: ['ASC', 'DESC'] }
+          },
+          required: ['column']
+        },
         limit: { type: 'number', description: 'Domyślnie 50' }
       },
       required: ['module']
+    }
+  },
+  {
+    name: 'get_record',
+    description: 'Pobiera JEDEN rekord po jego liczbowym ID (crmid) z DOWOLNEGO modułu - sam wykrywa moduł, zwraca etykietę rekordu, właściciela (imię i nazwisko) oraz komplet pól, także z tabel dodatkowych. ZAWSZE używaj tego narzędzia, gdy masz samo ID z pola referencyjnego (related_to z komentarza, link z kalendarza, contact_account, parentid itd.) i chcesz powiedzieć, czego dotyczy - NIE zgaduj i nie mów, że nie wiesz. Uwaga: ID użytkowników (userid, smownerid) to osobna pula - do nich użyj resolve_ids z type="users".',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        record_id: { type: 'number', description: 'Liczbowe ID rekordu (crmid)' },
+        fields: { type: 'array', items: { type: 'string' }, description: 'Opcjonalnie: tylko wybrane kolumny. Puste = wszystkie pola modułu.' }
+      },
+      required: ['record_id']
+    }
+  },
+  {
+    name: 'resolve_ids',
+    description: 'Masowo tłumaczy listę ID na (moduł + etykieta/nazwa) jednym wywołaniem - idealne, gdy lista wyników (np. komentarze z related_to, zdarzenia z link) zawiera wiele ID i trzeba je opisać nazwami. type="users" tłumaczy ID użytkowników CRM (userid, smownerid) na imiona i nazwiska.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        ids: { type: 'array', items: { type: 'number' }, description: 'Lista liczbowych ID (max 200)' },
+        type: { type: 'string', enum: ['records', 'users'], description: 'records (domyślnie) = rekordy CRM po crmid; users = użytkownicy CRM (vtiger_users)' }
+      },
+      required: ['ids']
     }
   }
 ];
@@ -711,14 +969,16 @@ const TOOL_HANDLERS = {
   get_account_summary: getAccountSummary,
   list_modules: listModules,
   describe_module: describeModule,
-  query_module: queryModule
+  query_module: queryModule,
+  get_record: getRecord,
+  resolve_ids: resolveIds
 };
 
 // --- SERWER MCP ---
 
 function createMcpServer() {
   const server = new Server(
-    { name: 'yetiforce-mcp', version: '2.0.0' },
+    { name: 'yetiforce-mcp', version: '2.1.0' },
     { capabilities: { tools: {} } }
   );
 
