@@ -69,11 +69,11 @@ function capPicklist(pv, max = 50) {
 // --- FUNKCJA STATYSTYK (bez zmian względem oryginału) ---
 async function getStats(args = {}) {
   const moduleMap = {
-    'leads': { table: 'vtiger_leaddetails', pk: 'leadid', amount: null },
-    'contacts': { table: 'vtiger_contactdetails', pk: 'contactid', amount: null },
-    'accounts': { table: 'vtiger_account', pk: 'accountid', amount: 'annualrevenue' },
-    'opportunities': { table: 'u_yf_ssalesprocesses', pk: 'ssalesprocessesid', amount: 'estimated' },
-    'invoices': { table: 'u_yf_finvoice', pk: 'finvoiceid', amount: 'sum_gross' }
+    'leads': { table: 'vtiger_leaddetails', pk: 'leadid', amount: null, ws: 'Leads' },
+    'contacts': { table: 'vtiger_contactdetails', pk: 'contactid', amount: null, ws: 'Contacts' },
+    'accounts': { table: 'vtiger_account', pk: 'accountid', amount: 'annualrevenue', ws: 'Accounts' },
+    'opportunities': { table: 'u_yf_ssalesprocesses', pk: 'ssalesprocessesid', amount: 'estimated', ws: 'SSalesProcesses' },
+    'invoices': { table: 'u_yf_finvoice', pk: 'finvoiceid', amount: 'sum_gross', ws: 'FInvoice' }
   };
 
   const mod = moduleMap[args.module];
@@ -112,14 +112,14 @@ async function getStats(args = {}) {
   if (args.module === 'leads') {
     if (stageValue) {
       query += ` AND t.lead_stage = ?`;
-      params.push(stageValue);
+      params.push(await rawPicklistValue('Leads', 'lead_stage', stageValue));
     } else if (statusValue) {
       if (isStageValue(statusValue)) {
         query += ` AND t.lead_stage = ?`;
         params.push(statusValue);
       } else {
         query += ` AND t.leadstatus = ?`;
-        params.push(statusValue);
+        params.push(await rawPicklistValue('Leads', 'leadstatus', statusValue));
       }
     }
   } else {
@@ -136,7 +136,7 @@ async function getStats(args = {}) {
           throw new Error(`Kolumna statusu "${statusCol}" nie istnieje w tej instalacji CRM - sprawdź describe_module i przefiltruj przez query_module z "filters".`);
         }
         query += ` AND t.${statusCol} = ?`;
-        params.push(statusValue);
+        params.push(await rawPicklistValue(mod.ws, statusCol, statusValue));
       }
     }
   }
@@ -236,8 +236,8 @@ async function getLeads(args = {}) {
   if (args.date_from) { query += ` AND e.createdtime >= ?`; params.push(args.date_from + ' 00:00:00'); }
   if (args.date_to) { query += ` AND e.createdtime <= ?`; params.push(args.date_to + ' 23:59:59'); }
 
-  if (args.status) { query += ` AND l.leadstatus = ?`; params.push(args.status); }
-  if (args.stage) { query += ` AND l.lead_stage = ?`; params.push(args.stage); }
+  if (args.status) { query += ` AND l.leadstatus = ?`; params.push(await rawPicklistValue('Leads', 'leadstatus', args.status)); }
+  if (args.stage) { query += ` AND l.lead_stage = ?`; params.push(await rawPicklistValue('Leads', 'lead_stage', args.stage)); }
 
   if (args.lead_account) { query += ` AND l.lead_account = ?`; params.push(args.lead_account); }
   if (args.lead_contact) { query += ` AND l.lead_contact = ?`; params.push(args.lead_contact); }
@@ -245,7 +245,7 @@ async function getLeads(args = {}) {
   query += ` ORDER BY e.createdtime DESC LIMIT ?`;
   params.push(parseInt(args.limit) || 100);
   const [rows] = await pool.execute(query, params);
-  return rows;
+  return await translateRows('Leads', rows);
 }
 
 async function getOpportunities(args = {}) {
@@ -260,14 +260,14 @@ async function getOpportunities(args = {}) {
   if (args.search) { query += ` AND (p.subject LIKE ? OR a.accountname LIKE ?)`; params.push(`%${args.search}%`, `%${args.search}%`); }
   if (args.date_from) { query += ` AND e.createdtime >= ?`; params.push(args.date_from + ' 00:00:00'); }
   if (args.date_to) { query += ` AND e.createdtime <= ?`; params.push(args.date_to + ' 23:59:59'); }
-  if (args.status) { query += ` AND p.ssalesprocesses_status = ?`; params.push(args.status); }
+  if (args.status) { query += ` AND p.ssalesprocesses_status = ?`; params.push(await rawPicklistValue('SSalesProcesses', 'ssalesprocesses_status', args.status)); }
   if (args.min_amount) { query += ` AND p.estimated >= ?`; params.push(parseFloat(args.min_amount)); }
   if (args.opportunity_company) { query += ` AND p.opportunity_company = ?`; params.push(args.opportunity_company); }
 
   query += ` ORDER BY e.createdtime DESC LIMIT ?`;
   params.push(parseInt(args.limit) || 100);
   const [rows] = await pool.execute(query, params);
-  return rows;
+  return await translateRows('SSalesProcesses', rows);
 }
 
 async function getInvoices(args = {}) {
@@ -282,11 +282,11 @@ async function getInvoices(args = {}) {
   if (args.search) { query += ` AND (i.subject LIKE ? OR a.accountname LIKE ?)`; params.push(`%${args.search}%`, `%${args.search}%`); }
   if (args.date_from) { query += ` AND e.createdtime >= ?`; params.push(args.date_from + ' 00:00:00'); }
   if (args.date_to) { query += ` AND e.createdtime <= ?`; params.push(args.date_to + ' 23:59:59'); }
-  if (args.status) { query += ` AND i.finvoice_status = ?`; params.push(args.status); }
+  if (args.status) { query += ` AND i.finvoice_status = ?`; params.push(await rawPicklistValue('FInvoice', 'finvoice_status', args.status)); }
   query += ` ORDER BY e.createdtime DESC LIMIT ?`;
   params.push(parseInt(args.limit) || 100);
   const [rows] = await pool.execute(query, params);
-  return rows;
+  return await translateRows('FInvoice', rows);
 }
 
 async function getAccountSummary(args = {}) {
@@ -344,12 +344,20 @@ async function getAccountSummary(args = {}) {
     [accountId]
   );
 
+  // CUSTOM (Averica, 2026-07-06): statusy/etapy tłumaczone na etykiety z UI
+  const [accountOut, leadsOut, oppsOut, invoicesOut] = await Promise.all([
+    translateRows('Accounts', accountRows),
+    translateRows('Leads', leadRows),
+    translateRows('SSalesProcesses', opportunityRows),
+    translateRows('FInvoice', invoiceRows)
+  ]);
+
   return {
-    account: accountRows[0] || null,
+    account: accountOut[0] || null,
     contacts: contactRows,
-    leads: leadRows,
-    opportunities: opportunityRows,
-    invoices: invoiceRows
+    leads: leadsOut,
+    opportunities: oppsOut,
+    invoices: invoicesOut
   };
 }
 
@@ -417,6 +425,84 @@ async function yfGetFieldsMeta(moduleName) {
   return data?.result?.fields || null;
 }
 
+// CUSTOM (Averica, 2026-07-06): tłumaczenie wartości słownikowych (picklist) na etykiety
+// widoczne w UI. W bazie YetiForce wartości list są zapisane surowo (np. PLL_SALE_COMPLETED),
+// a UI tłumaczy je z plików językowych - dlatego bot pokazywał "PLL_SALE_CANCELLED" zamiast
+// "Sprzedaż anulowana". Mapy surowa<->polska bierzemy z webservice Fields() i cache'ujemy.
+const FIELDS_META_TTL_MS = 10 * 60 * 1000;
+const fieldsMetaCache = new Map(); // moduleName -> { ts, fields }
+async function getFieldsMetaCached(moduleName) {
+  const hit = fieldsMetaCache.get(moduleName);
+  if (hit && Date.now() - hit.ts < FIELDS_META_TTL_MS) return hit.fields;
+  let fields = null;
+  try {
+    fields = await yfGetFieldsMeta(moduleName);
+  } catch (e) {
+    fields = null;
+  }
+  fieldsMetaCache.set(moduleName, { ts: Date.now(), fields });
+  return fields;
+}
+
+const picklistMapsCache = new Map(); // moduleName -> { ts, maps }
+async function getPicklistMaps(moduleName) {
+  const hit = picklistMapsCache.get(moduleName);
+  if (hit && Date.now() - hit.ts < FIELDS_META_TTL_MS) return hit.maps;
+  const maps = { byColumn: {}, reverseByColumn: {} };
+  try {
+    const [tabRows] = await pool.execute(`SELECT tabid FROM vtiger_tab WHERE name = ?`, [moduleName]);
+    if (tabRows.length) {
+      const [fieldRows] = await pool.execute(
+        `SELECT fieldname, columnname FROM vtiger_field WHERE tabid = ? AND uitype IN (15, 16, 33)`,
+        [tabRows[0].tabid]
+      );
+      const ws = await getFieldsMetaCached(moduleName);
+      if (ws) {
+        for (const f of fieldRows) {
+          const pv = ws[f.fieldname]?.picklistvalues;
+          if (pv && Object.keys(pv).length) {
+            maps.byColumn[f.columnname] = pv;
+            const rev = {};
+            for (const [raw, translated] of Object.entries(pv)) rev[String(translated)] = raw;
+            maps.reverseByColumn[f.columnname] = rev;
+          }
+        }
+      }
+    }
+  } catch (e) {
+    // webservice/baza niedostępne - puste mapy, wartości zostaną surowe (jak dotychczas)
+  }
+  picklistMapsCache.set(moduleName, { ts: Date.now(), maps });
+  return maps;
+}
+
+// Podmienia w wierszach surowe wartości picklist na etykiety z UI (in place, kopia wierszy).
+async function translateRows(moduleName, rows) {
+  if (!Array.isArray(rows) || !rows.length) return rows;
+  const { byColumn } = await getPicklistMaps(moduleName);
+  const cols = Object.keys(byColumn);
+  if (!cols.length) return rows;
+  return rows.map((r) => {
+    const out = { ...r };
+    for (const col of cols) {
+      if (out[col] != null && byColumn[col][out[col]] !== undefined) out[col] = byColumn[col][out[col]];
+    }
+    return out;
+  });
+}
+
+// Zamienia wartość filtra podaną "po polsku" (jak w UI) na surową wartość z bazy.
+// Jeśli wartość już jest surowa albo kolumna nie jest picklistą - zwraca bez zmian.
+async function rawPicklistValue(moduleName, columnname, value) {
+  if (value == null) return value;
+  const { byColumn, reverseByColumn } = await getPicklistMaps(moduleName);
+  const pv = byColumn[columnname];
+  if (!pv) return value;
+  if (pv[value] !== undefined) return value;
+  const rev = reverseByColumn[columnname];
+  return rev && rev[String(value)] !== undefined ? rev[String(value)] : value;
+}
+
 async function describeModule(args = {}) {
   const moduleName = args.module;
   if (!moduleName) throw new Error('Parametr "module" jest wymagany.');
@@ -436,12 +522,7 @@ async function describeModule(args = {}) {
   // Dociągamy NA ŻYWO prawdziwe, aktualne wartości list (picklist) z webservice -
   // jeśli się nie uda (np. webservice padnie), zwracamy strukturę bazową bez tego,
   // żeby describe_module nigdy nie wywaliło się całkowicie z powodu tego dodatku.
-  let webserviceFields = null;
-  try {
-    webserviceFields = await yfGetFieldsMeta(moduleName);
-  } catch (e) {
-    webserviceFields = null;
-  }
+  let webserviceFields = await getFieldsMetaCached(moduleName);
 
   // CUSTOM (Averica, 2026-07-05):
   // 1) etykiety pól bierzemy z webservice (są PRZETŁUMACZONE tak jak w UI - "Miejscowość"
@@ -617,11 +698,20 @@ async function queryModule(args = {}) {
       }
       const colRef = `${aliasFor(f.column)}.${f.column}`;
       const op = String(f.operator || '=').toLowerCase();
+      // CUSTOM (Averica, 2026-07-06): wartości picklist można podawać po polsku (jak w UI)
+      // albo surowo (PLL_*) - tłumaczymy na surową formę przed zapytaniem SQL.
+      let val = f.value;
+      const colInfo = colMap.get(f.column);
+      if (colInfo && [15, 16, 33].includes(colInfo.uitype)) {
+        val = Array.isArray(val)
+          ? await Promise.all(val.map((v) => rawPicklistValue(moduleName, f.column, v)))
+          : await rawPicklistValue(moduleName, f.column, val);
+      }
       if (op === 'like') {
         query += ` AND ${colRef} LIKE ?`;
-        params.push(`%${f.value}%`);
+        params.push(`%${val}%`);
       } else if (op === 'in') {
-        const vals = Array.isArray(f.value) ? f.value : [f.value];
+        const vals = Array.isArray(val) ? val : [val];
         if (!vals.length) continue;
         query += ` AND ${colRef} IN (${vals.map(() => '?').join(',')})`;
         params.push(...vals);
@@ -631,7 +721,7 @@ async function queryModule(args = {}) {
         query += ` AND ${colRef} IS NOT NULL AND ${colRef} <> ''`;
       } else if (FILTER_OPS[op]) {
         query += ` AND ${colRef} ${FILTER_OPS[op]} ?`;
-        params.push(f.value);
+        params.push(val);
       } else {
         throw new Error(`Nieznany operator w "filters": ${f.operator}. Dozwolone: =, !=, >, >=, <, <=, like, in, empty, notempty.`);
       }
@@ -690,7 +780,8 @@ async function queryModule(args = {}) {
   params.push(parseInt(args.limit) || 50);
 
   const [rows] = await pool.execute(query, params);
-  return rows;
+  // CUSTOM (Averica, 2026-07-06): wartości picklist tłumaczone na etykiety z UI
+  return await translateRows(moduleName, rows);
 }
 
 // CUSTOM (Averica, 2026-07-05): pobranie JEDNEGO rekordu po crmid z automatycznym
@@ -772,7 +863,7 @@ const TOOLS = [
         module: { type: 'string', enum: ['leads', 'contacts', 'accounts', 'opportunities', 'invoices'], description: 'Moduł CRM' },
         date_from: { type: 'string', description: 'Data od (YYYY-MM-DD)' },
         date_to: { type: 'string', description: 'Data do (YYYY-MM-DD)' },
-        status: { type: 'string', description: 'Status rekordu (lub etap leada, np. SQL/MQL - zostanie wykryty automatycznie)' },
+        status: { type: 'string', description: 'Status rekordu (lub etap leada, np. SQL/MQL - zostanie wykryty automatycznie). Można podać wartość polską z UI albo surową (PLL_*).' },
         stage: { type: 'string', description: 'Etap leada (SQL, MQL, IQL, SAL, Hot, Cold, Warm)' },
         account_id: { type: 'string', description: 'ID powiązanego kontrahenta' }
       },
@@ -895,7 +986,7 @@ const TOOLS = [
   },
   {
     name: 'query_module',
-    description: 'Generyczne pobieranie rekordów z DOWOLNEGO modułu i DOWOLNYCH pól YetiForce (nie tylko tych z dedykowanych narzędzi) - automatycznie łączy (JOIN) wszystkie tabele, w których fizycznie leżą pola tego modułu (np. adres firmy jest w innej tabeli niż jej nazwa/NIP). Struktura odczytywana na żywo z metadanych CRM. NAJWAŻNIEJSZE: parametr "filters" pozwala filtrować po dowolnej kolumnie - np. komentarze do konkretnego rekordu: module="ModComments", filters=[{"column":"related_to","value":1289}]; zdarzenia kalendarza firmy: module="Calendar", filters=[{"column":"link","value":<id>}]. Do pytań o kalendarz wg TERMINU zdarzenia ustaw date_field="date_start" (bez tego date_from/date_to filtrują po dacie UTWORZENIA rekordu!) oraz order_by={"column":"date_start","direction":"ASC"}.',
+    description: 'Generyczne pobieranie rekordów z DOWOLNEGO modułu i DOWOLNYCH pól YetiForce (nie tylko tych z dedykowanych narzędzi) - automatycznie łączy (JOIN) wszystkie tabele, w których fizycznie leżą pola tego modułu (np. adres firmy jest w innej tabeli niż jej nazwa/NIP). Struktura odczytywana na żywo z metadanych CRM. NAJWAŻNIEJSZE: parametr "filters" pozwala filtrować po dowolnej kolumnie - np. komentarze do konkretnego rekordu: module="ModComments", filters=[{"column":"related_to","value":1289}]; zdarzenia kalendarza firmy: module="Calendar", filters=[{"column":"link","value":<id>}]. Do pytań o kalendarz wg TERMINU zdarzenia ustaw date_field="date_start" (bez tego date_from/date_to filtrują po dacie UTWORZENIA rekordu!) oraz order_by={"column":"date_start","direction":"ASC"}. Wartości pól słownikowych (statusy, etapy, typy) w wynikach są już PRZETŁUMACZONE tak jak w UI CRM - pokazuj je wprost; w "filters" możesz podać wartość polską (z UI) albo surową (PLL_*), obie zadziałają.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -978,7 +1069,7 @@ const TOOL_HANDLERS = {
 
 function createMcpServer() {
   const server = new Server(
-    { name: 'yetiforce-mcp', version: '2.1.0' },
+    { name: 'yetiforce-mcp', version: '2.2.0' },
     { capabilities: { tools: {} } }
   );
 
