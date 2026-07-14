@@ -851,6 +851,76 @@ async function resolveIds(args = {}) {
   return rows;
 }
 
+// CUSTOM (Averica, 2026-07-14): wiszące szanse jednym zapytaniem SQL zamiast setek
+// wywołań query_module z agenta (raport "wiszące szanse" Leny w n8n).
+async function moduleMainTable(moduleName) {
+  const [tabRows] = await pool.execute(`SELECT tabid FROM vtiger_tab WHERE name = ?`, [moduleName]);
+  if (!tabRows.length) throw new Error(`Nieznany moduł: ${moduleName}`);
+  const [rows] = await pool.execute(
+    `SELECT tablename, entityidcolumn FROM vtiger_entityname WHERE tabid = ?`,
+    [tabRows[0].tabid]
+  );
+  if (!rows.length) throw new Error(`Brak metadanych tabeli dla modułu: ${moduleName}`);
+  return rows[0];
+}
+
+async function getStaleOpportunities(args = {}) {
+  const days = parseInt(args.days) || 14;
+  const limit = Math.min(parseInt(args.limit) || 500, 500);
+  const cal = await moduleMainTable('Calendar');
+  const mc = await moduleMainTable('ModComments');
+
+  const [rows] = await pool.execute(
+    `SELECT p.ssalesprocessesid AS id, p.subject, p.estimated, p.ssalesprocesses_status,
+            a.accountname, e.createdtime, e.smownerid,
+            CONCAT(u.first_name, ' ', u.last_name) AS owner,
+            (SELECT MAX(ce.createdtime) FROM ${mc.tablename} c
+               JOIN vtiger_crmentity ce ON c.${mc.entityidcolumn} = ce.crmid AND ce.deleted = 0
+              WHERE c.related_to = p.ssalesprocessesid) AS last_comment,
+            (SELECT MAX(ae.createdtime) FROM ${cal.tablename} act
+               JOIN vtiger_crmentity ae ON act.${cal.entityidcolumn} = ae.crmid AND ae.deleted = 0
+              WHERE act.link = p.ssalesprocessesid) AS last_event
+     FROM u_yf_ssalesprocesses p
+     JOIN vtiger_crmentity e ON p.ssalesprocessesid = e.crmid
+     LEFT JOIN vtiger_account a ON p.opportunity_company = a.accountid
+     LEFT JOIN vtiger_users u ON e.smownerid = u.id
+     WHERE e.deleted = 0
+     LIMIT ?`,
+    [limit]
+  );
+
+  const translated = await translateRows('SSalesProcesses', rows);
+  // Statusy zamknięte odfiltrowujemy po PRZETŁUMACZONEJ etykiecie (PL + EN fallback),
+  // bo surowe wartości picklisty różnią się między instalacjami.
+  const closedRe = /zakończ|anulow|nieudan|closed|cancel|lost|won/i;
+  const now = Date.now();
+  const result = [];
+  for (const r of translated) {
+    if (closedRe.test(String(r.ssalesprocesses_status || ''))) continue;
+    const dates = [r.createdtime, r.last_comment, r.last_event]
+      .filter(Boolean)
+      .map((d) => new Date(d).getTime())
+      .filter((t) => !Number.isNaN(t));
+    if (!dates.length) continue;
+    const last = Math.max(...dates);
+    const daysIdle = Math.floor((now - last) / 86400000);
+    if (daysIdle >= days) {
+      result.push({
+        id: r.id,
+        subject: r.subject,
+        estimated: r.estimated,
+        status: r.ssalesprocesses_status,
+        accountname: r.accountname,
+        owner: r.owner,
+        last_activity: new Date(last).toISOString().slice(0, 19).replace('T', ' '),
+        days_idle: daysIdle
+      });
+    }
+  }
+  result.sort((a, b) => b.days_idle - a.days_idle);
+  return result;
+}
+
 // --- DEFINICJE NARZĘDZI MCP ---
 
 const TOOLS = [
@@ -924,6 +994,17 @@ const TOOLS = [
         search: { type: 'string', description: 'Szukaj w nazwie, NIP lub miejscowości' },
         date_from: { type: 'string' },
         date_to: { type: 'string' }
+      }
+    }
+  },
+  {
+    name: 'get_stale_opportunities',
+    description: 'WISZĄCE szanse sprzedaży: otwarte szanse bez żadnej aktywności (komentarz, zdarzenie w kalendarzu, samo utworzenie) od N dni - policzony JEDNYM zapytaniem SQL. Zwraca: temat, wartość, status, firmę, właściciela (imię i nazwisko), datę ostatniej aktywności i liczbę dni bez ruchu (days_idle), posortowane od najdłużej wiszących. Szanse zamknięte (zakończone/anulowane/nieudane) są automatycznie pominięte. UŻYWAJ TEGO narzędzia do raportu wiszących szans zamiast iterowania po szansach z osobnymi zapytaniami query_module.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        days: { type: 'number', description: 'Próg dni bez aktywności (domyślnie 14)' },
+        limit: { type: 'number', description: 'Ile szans maksymalnie przeanalizować (domyślnie 500)' }
       }
     }
   },
@@ -1056,6 +1137,7 @@ const TOOL_HANDLERS = {
   get_accounts: getAccounts,
   get_partners: getPartners,
   get_opportunities: getOpportunities,
+  get_stale_opportunities: getStaleOpportunities,
   get_invoices: getInvoices,
   get_account_summary: getAccountSummary,
   list_modules: listModules,
@@ -1069,7 +1151,7 @@ const TOOL_HANDLERS = {
 
 function createMcpServer() {
   const server = new Server(
-    { name: 'yetiforce-mcp', version: '2.2.0' },
+    { name: 'yetiforce-mcp', version: '2.3.0' },
     { capabilities: { tools: {} } }
   );
 
