@@ -791,9 +791,12 @@ async function getRecord(args = {}) {
   const id = parseInt(args.record_id);
   if (!id) throw new Error('Parametr "record_id" jest wymagany (liczbowe ID rekordu / crmid).');
 
+  // Etykieta rekordu leży w u_yf_crmentity_label (vtiger_crmentity w YF7 nie ma kolumny label)
   const [entRows] = await pool.execute(
-    `SELECT crmid, setype, label, smownerid, createdtime, modifiedtime, deleted
-     FROM vtiger_crmentity WHERE crmid = ?`,
+    `SELECT e.crmid, e.setype, l.label, e.smownerid, e.createdtime, e.modifiedtime, e.deleted
+     FROM vtiger_crmentity e
+     LEFT JOIN u_yf_crmentity_label l ON l.crmid = e.crmid
+     WHERE e.crmid = ?`,
     [id]
   );
   if (!entRows.length) {
@@ -845,7 +848,10 @@ async function resolveIds(args = {}) {
   }
 
   const [rows] = await pool.execute(
-    `SELECT crmid, setype AS module, label, deleted FROM vtiger_crmentity WHERE crmid IN (${ids.map(() => '?').join(',')})`,
+    `SELECT e.crmid, e.setype AS module, l.label, e.deleted
+     FROM vtiger_crmentity e
+     LEFT JOIN u_yf_crmentity_label l ON l.crmid = e.crmid
+     WHERE e.crmid IN (${ids.map(() => '?').join(',')})`,
     ids
   );
   return rows;
@@ -1151,7 +1157,7 @@ const TOOL_HANDLERS = {
 
 function createMcpServer() {
   const server = new Server(
-    { name: 'yetiforce-mcp', version: '2.3.0' },
+    { name: 'yetiforce-mcp', version: '2.3.1' },
     { capabilities: { tools: {} } }
   );
 
